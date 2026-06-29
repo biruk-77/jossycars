@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vehicle Details | Real Cars ETH</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="i18n.js"></script>
+</head>
+<body>
+
+  <header id="main-header">
+    <div class="logo-container">
+      <img src="logo.jpg" alt="Real Cars ETH" class="logo-img">
+      <span class="logo-text">REAL CARS ETH</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html" data-i18n="nav-home">Home</a></li>
+      <li><a href="index.html#inventory" class="active" data-i18n="nav-inventory">Inventory</a></li>
+      <li><a href="index.html#about" data-i18n="nav-about">About</a></li>
+      <li><a href="index.html#contact" data-i18n="nav-contact">Contact</a></li>
+    </ul>
+    <button class="lang-toggle-btn" id="lang-toggle" style="margin-left: auto; margin-right: 15px;">
+      <i class="fa-solid fa-globe"></i>
+      <span id="lang-label">EN</span>
+    </button>
+    <div class="nav-auth-container" id="nav-auth-container"></div>
+    <a href="https://t.me/jossycarmar" target="_blank" class="tg-btn" data-i18n="nav-cta">
+      <i class="fa-brands fa-telegram"></i> Contact Us
+    </a>
+  </header>
+
+  <main class="detail-page">
+    <a href="index.html#inventory" class="back-btn" data-i18n="detail-back">
+      <i class="fa-solid fa-arrow-left"></i> Back to Inventory
+    </a>
+
+    <div class="detail-layout">
+
+      <!-- Gallery -->
+      <div class="detail-gallery">
+        <div class="gallery-main">
+          <img id="gallery-main-img" src="" alt="Vehicle">
+          <button class="gallery-nav prev" id="gallery-prev"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="gallery-nav next" id="gallery-next"><i class="fa-solid fa-chevron-right"></i></button>
+          <div class="gallery-counter" id="gallery-counter">1 / 1</div>
+          <!-- Slide progress bar -->
+          <div class="gallery-auto-bar"><div class="gallery-auto-fill" id="gallery-auto-fill"></div></div>
+        </div>
+        <div class="gallery-thumbs" id="gallery-thumbs"></div>
+      </div>
+
+      <!-- Info panel -->
+      <div class="detail-info">
+        <h1 class="detail-title" id="detail-title">Loading...</h1>
+        <div class="detail-price" id="detail-price">—</div>
+        <div class="detail-divider"></div>
+        <!-- Spec chips: Year · Engine · Mileage · Transmission -->
+        <div class="detail-specs" id="detail-specs"></div>
+
+        <!-- Structured Specifications Grid -->
+        <div class="specs-grid" id="specs-grid"></div>
+        <div class="detail-divider" id="specs-divider" style="display:none; margin: 20px 0;"></div>
+
+        <!-- Short overview sentence -->
+        <div class="detail-overview" id="detail-overview"></div>
+
+        <!-- Features checklist -->
+        <div class="detail-features" id="detail-features"></div>
+
+        <!-- Auto-detected contacts -->
+        <div class="detected-contacts" id="detected-contacts"></div>
+
+        <div class="detail-divider" style="margin:20px 0;"></div>
+
+        <div class="detail-actions" id="detail-actions">
+          <a href="#" target="_blank" class="detail-btn primary" id="detail-contact-tg" data-i18n="detail-contact-agent">
+            <i class="fa-brands fa-telegram"></i> Enquire on Telegram
+          </a>
+          <a href="tel:+251911000000" class="detail-btn secondary" id="detail-call-btn" data-i18n="detail-btn-call">
+            <i class="fa-solid fa-phone"></i> Call Dealership
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer id="contact">
+    <div class="footer-logo">
+      <img src="logo.jpg" alt="Real Cars ETH" class="logo-img">
+      <span class="logo-text">REAL CARS ETH</span>
+    </div>
+    <p data-i18n="footer-copy">&copy; 2026 Real Cars ETH — Premium Auto Dealership, Ethiopia.</p>
+    <div class="footer-links">
+      <a href="https://t.me/jossycarmar" target="_blank" class="footer-link">
+        <i class="fa-brands fa-telegram"></i> @jossycarmar
+      </a>
+      <a href="tel:+251911000000" class="footer-link" data-i18n="footer-call">
+        <i class="fa-solid fa-phone"></i> Call Us
+      </a>
+      <a href="login.html" class="footer-link" data-i18n="footer-admin-access">
+        <i class="fa-solid fa-lock" style="font-size: 10px;"></i> Admin Access
+      </a>
+    </div>
+  </footer>
+
+  <script>
+    /* ── Smart description parser ── */
+    function structureDetails(raw) {
+      if (!raw) return { specs: [], detailedSpecs: [], features: [], overview: '' };
+
+      // 1. Deduplicate — Telegram posts often repeat the full text twice
+      let text = raw.trim();
+      const len = text.length;
+      for (let i = Math.floor(len * 0.38); i < Math.floor(len * 0.65); i++) {
+        if (text.substring(i, i + 55) === text.substring(0, 55)) {
+          text = text.substring(0, i).trim();
+          break;
+        }
+      }
+
+      // Clean some promo lines
+      text = text
+        .replace(/join our telegram channel[\s\S]*$/im, '')
+        .replace(/buy\s*[\.\·]\s*sell[\s\S]*$/im, '')
+        .replace(/={3,}/g, '')
+        .replace(/https?:\/\/[^\s\n]+/g, '')
+        .replace(/commission[^\n]*/gi, '')
+        .replace(/📱/g, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+
+      // 2. Define key-value specs to normalize
+      const keysInfo = [
+        { key: 'Make', label: 'Make' },
+        { key: 'Model', label: 'Model' },
+        { key: 'Year', label: 'Year' },
+        { key: 'Body Type', label: 'Body Type' },
+        { key: 'Seats', label: 'Seats' },
+        { key: 'Engine', label: 'Engine' },
+        { key: 'Battery Capacity', label: 'Battery Capacity' },
+        { key: 'Drive Type', label: 'Drive Type' },
+        { key: 'Transmission', label: 'Transmission' },
+        { key: 'Top Speed', label: 'Top Speed' },
+        { key: 'Fuel', label: 'Fuel' },
+        { key: 'Dimensions', label: 'Dimensions' },
+        { key: 'Color', label: 'Color' },
+        { key: 'Plate', label: 'Plate' },
+        { key: 'Mileage', label: 'Mileage' },
+        { key: 'Price', label: 'Price' }
+      ];
+
+      let formattedText = text;
+      keysInfo.forEach(item => {
+        const regex = new RegExp(`([^\\n\\r]|^)(${item.key})\\s*:`, 'gi');
+        formattedText = formattedText.replace(regex, '$1\n$2: ');
+      });
+
+      // 3. Extract top spec chips
+      const specs = [];
+      const yearM  = text.match(/\b(20\d{2}|19\d{2})\b/);
+      if (yearM)  specs.push({ icon: 'fa-calendar-days', label: yearM[1] });
+
+      const engM = text.match(/(\d+\.?\d*[\s\-]liter[^,\n✅]{0,45})/i);
+      if (engM)   specs.push({ icon: 'fa-gear', label: engM[1].trim().replace(/\s+/g,' ') });
+
+      const hpM   = text.match(/(\d{2,4})\s*hp\b/i);
+      if (hpM)    specs.push({ icon: 'fa-bolt', label: `${hpM[1]} HP` });
+
+      const mileM = text.match(/mileage[:\s]*([\d,.]+\s*(?:km|miles|kms))/i);
+      if (mileM)  specs.push({ icon: 'fa-road', label: mileM[1].trim() });
+
+      const transM = text.match(/\b(automatic|manual|semi[\s\-]auto)\b/i);
+      if (transM)  specs.push({ icon: 'fa-sliders', label: transM[1] });
+
+      const driveM = text.match(/\b(4wd|awd|4x4|2wd|fwd|rwd)\b/i);
+      if (driveM)  specs.push({ icon: 'fa-car', label: driveM[1].toUpperCase() });
+
+      // 4. Extract detailed specs grid and filter overview text
+      const detailedSpecs = [];
+      const lines = formattedText.split('\n');
+      const linesToKeep = [];
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+
+        const colonIdx = trimmed.indexOf(':');
+        if (colonIdx !== -1) {
+          const possibleKey = trimmed.substring(0, colonIdx).trim().toLowerCase();
+          const match = keysInfo.find(k => k.key.toLowerCase() === possibleKey);
+          if (match) {
+            const val = trimmed.substring(colonIdx + 1).trim();
+            let cleanVal = val;
+            keysInfo.forEach(ki => {
+              const subIdx = cleanVal.toLowerCase().indexOf(ki.key.toLowerCase() + ':');
+              if (subIdx !== -1) {
+                cleanVal = cleanVal.substring(0, subIdx).trim();
+              }
+            });
+            cleanVal = cleanVal.replace(/[✅🏎📱]/g, '').trim();
+            if (cleanVal) {
+              detailedSpecs.push({ label: match.label, value: cleanVal });
+            }
+            return; // Filter from general overview
+          }
+        }
+        linesToKeep.push(trimmed);
+      });
+
+      // 5. Extract features checklist
+      const featM = text.match(/✅([^🏎📱@✅]{10,600})/);
+      let features = [];
+      if (featM) {
+        features = featM[1]
+          .split(',')
+          .map(f => f.trim().replace(/^[✅\-•\s]+/, ''))
+          .filter(f => f.length > 2 && f.length < 100 && !/http/i.test(f));
+      }
+
+      // 6. Clean overview summary
+      const overview = linesToKeep
+        .join('\n\n')
+        .replace(/[🇺🇸🇯🇵⚙️✅🏎🌍⬇️📱]/g, '')
+        .replace(/@\w+/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+
+      return { specs, detailedSpecs, features, overview };
+    }
+
+    /* ── Contact auto-detection ── */
+    function parseContacts(text) {
+      const contacts = { phones: [], usernames: [] };
+      // Ethiopian phone: +251XXXXXXXXX, 09XXXXXXXX, 07XXXXXXXX
+      const phoneRe = /(\+251[\s-]?\d[\d\s-]{7,11}|0[97]\d{8})/g;
+      // Telegram @username (min 4 chars, alphanumeric + underscore)
+      const userRe  = /@([a-zA-Z]\w{3,30})/g;
+      const seen = { phones: new Set(), users: new Set() };
+      let m;
+      while ((m = phoneRe.exec(text)) !== null) {
+        const clean = m[1].replace(/[\s-]/g, '');
+        if (!seen.phones.has(clean)) { seen.phones.add(clean); contacts.phones.push(clean); }
+      }
+      while ((m = userRe.exec(text)) !== null) {
+        if (!seen.users.has(m[1])) { seen.users.add(m[1]); contacts.usernames.push(m[1]); }
+      }
+      return contacts;
+    }
+
+    /* ── Auto-slide timer ── */
+    const AUTO_INTERVAL = 4000;
+    let autoTimer  = null;
+    let autoFillEl = null;
+    let currentIdx = 0;
+    let photos     = [];
+
+    function startAutoSlide() {
+      stopAutoSlide();
+      if (photos.length <= 1) return;
+      resetFill();
+      autoTimer = setInterval(() => {
+        currentIdx = (currentIdx + 1) % photos.length;
+        showPhoto(currentIdx);
+      }, AUTO_INTERVAL);
+    }
+
+    function stopAutoSlide() {
+      clearInterval(autoTimer);
+      if (autoFillEl) { autoFillEl.style.transition = 'none'; autoFillEl.style.width = '0%'; }
+    }
+
+    function resetFill() {
+      if (!autoFillEl) return;
+      autoFillEl.style.transition = 'none';
+      autoFillEl.style.width = '0%';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        autoFillEl.style.transition = `width ${AUTO_INTERVAL}ms linear`;
+        autoFillEl.style.width = '100%';
+      }));
+    }
+
+    function showPhoto(idx) {
+      currentIdx = idx;
+      const img = document.getElementById('gallery-main-img');
+      img.style.opacity = '0';
+      setTimeout(() => { img.src = photos[idx]; img.style.opacity = '1'; }, 140);
+      document.getElementById('gallery-counter').textContent = `${idx + 1} / ${photos.length}`;
+      document.querySelectorAll('.thumb').forEach((t, i) => t.classList.toggle('active', i === idx));
+      if (autoFillEl) resetFill();
+    }
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const header = document.getElementById('main-header');
+      window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 60));
+
+      const raw = sessionStorage.getItem('rceth_car');
+      if (!raw) { window.location.href = 'index.html'; return; }
+
+      const car     = JSON.parse(raw);
+      const fallback = 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1600';
+      photos = (car.photos?.length) ? car.photos : [fallback];
+
+      autoFillEl = document.getElementById('gallery-auto-fill');
+
+      // Clean messy raw title
+      let cleanTitle = car.title || '';
+      const splitKeywords = ['make:', 'model:', 'year:', 'price:', 'plate:', 'transmission:', 'engine:', 'body type:'];
+      for (const kw of splitKeywords) {
+        const idx = cleanTitle.toLowerCase().indexOf(kw);
+        if (idx !== -1) {
+          cleanTitle = cleanTitle.substring(0, idx).trim();
+        }
+      }
+      cleanTitle = cleanTitle.replace(/[:\-,\s]+$/, '').trim();
+
+      // Clean price prefix
+      let cleanPrice = car.price || 'Contact for Price';
+      cleanPrice = cleanPrice.replace(/^price\s*:\s*/i, '').trim();
+
+      document.title = `${cleanTitle} | Real Cars ETH`;
+      document.getElementById('detail-title').textContent = cleanTitle;
+      document.getElementById('detail-price').textContent = cleanPrice;
+
+      /* ── Structured description ── */
+      const { specs, detailedSpecs, features, overview } = structureDetails(car.details || '');
+
+      const specsEl = document.getElementById('detail-specs');
+      if (specs.length) {
+        specsEl.innerHTML = specs.map(s =>
+          `<div class="spec-chip"><i class="fa-solid ${s.icon}"></i>${s.label}</div>`
+        ).join('');
+      }
+
+      // Populate detailed specs grid
+      const specsGridEl = document.getElementById('specs-grid');
+      const specsDividerEl = document.getElementById('specs-divider');
+      if (detailedSpecs.length) {
+        specsGridEl.style.display = 'grid';
+        if (specsDividerEl) specsDividerEl.style.display = 'block';
+        specsGridEl.innerHTML = detailedSpecs.map(ds => `
+          <div class="spec-item">
+            <span class="spec-name">${ds.label}</span>
+            <span class="spec-value">${ds.value}</span>
+          </div>
+        `).join('');
+      } else {
+        specsGridEl.style.display = 'none';
+        if (specsDividerEl) specsDividerEl.style.display = 'none';
+      }
+
+      const overviewEl = document.getElementById('detail-overview');
+      if (overview) {
+        overviewEl.textContent = overview;
+        overviewEl.style.display = 'block';
+      } else {
+        overviewEl.style.display = 'none';
+      }
+
+      const featEl = document.getElementById('detail-features');
+      if (features.length) {
+        const mid = Math.ceil(features.length / 2);
+        const col1 = features.slice(0, mid);
+        const col2 = features.slice(mid);
+        featEl.innerHTML = `
+          <p class="feat-label">Features</p>
+          <div class="feat-grid">
+            <ul class="feat-col">${col1.map(f=>`<li><i class="fa-solid fa-check"></i>${f}</li>`).join('')}</ul>
+            <ul class="feat-col">${col2.map(f=>`<li><i class="fa-solid fa-check"></i>${f}</li>`).join('')}</ul>
+          </div>`;
+      }
+
+      /* Primary Telegram link */
+      const tgBtn = document.getElementById('detail-contact-tg');
+      tgBtn.href  = (car.link && car.link !== '#') ? car.link : 'https://t.me/jossycarmar';
+
+      /* ── Auto-detect contacts ── */
+      const { phones, usernames } = parseContacts(car.details || '');
+      const contactsEl = document.getElementById('detected-contacts');
+
+      if (phones.length || usernames.length) {
+        const heading = document.createElement('p');
+        heading.className = 'contact-detect-label';
+        heading.textContent = 'Detected contacts';
+        contactsEl.appendChild(heading);
+      }
+
+      phones.forEach(phone => {
+        const a = document.createElement('a');
+        a.href      = `tel:${phone}`;
+        a.className = 'detected-contact-btn phone';
+        a.innerHTML = `<i class="fa-solid fa-phone"></i> ${phone}`;
+        contactsEl.appendChild(a);
+      });
+
+      usernames.forEach(user => {
+        const a = document.createElement('a');
+        a.href      = `https://t.me/${user}`;
+        a.target    = '_blank';
+        a.className = 'detected-contact-btn telegram';
+        a.innerHTML = `<i class="fa-brands fa-telegram"></i> @${user}`;
+        contactsEl.appendChild(a);
+      });
+
+      /* ── Gallery ── */
+      const thumbsEl = document.getElementById('gallery-thumbs');
+
+      photos.forEach((src, i) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'thumb' + (i === 0 ? ' active' : '');
+        const img = document.createElement('img');
+        img.src = src; img.alt = `Photo ${i+1}`;
+        img.loading = i < 3 ? 'eager' : 'lazy';
+        img.onerror = () => thumb.remove();
+        thumb.appendChild(img);
+        thumb.addEventListener('click', () => { stopAutoSlide(); showPhoto(i); startAutoSlide(); });
+        thumbsEl.appendChild(thumb);
+      });
+
+      showPhoto(0);
+      startAutoSlide();
+
+      document.getElementById('gallery-prev').addEventListener('click', () => {
+        stopAutoSlide();
+        showPhoto((currentIdx - 1 + photos.length) % photos.length);
+        startAutoSlide();
+      });
+      document.getElementById('gallery-next').addEventListener('click', () => {
+        stopAutoSlide();
+        showPhoto((currentIdx + 1) % photos.length);
+        startAutoSlide();
+      });
+
+      document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft')  { stopAutoSlide(); showPhoto((currentIdx-1+photos.length)%photos.length); startAutoSlide(); }
+        if (e.key === 'ArrowRight') { stopAutoSlide(); showPhoto((currentIdx+1)%photos.length); startAutoSlide(); }
+      });
+
+      if (photos.length <= 1) {
+        document.getElementById('gallery-prev').style.display    = 'none';
+        document.getElementById('gallery-next').style.display    = 'none';
+        document.getElementById('gallery-counter').style.display = 'none';
+        document.getElementById('gallery-auto-fill').parentElement.style.display = 'none';
+        thumbsEl.style.display = 'none';
+      }
+    });
+  </script>
+
+  <!-- Customer Auth Modal (Popup on Car Touch) -->
+  <div class="auth-modal" id="customer-auth-modal">
+    <div class="auth-modal-content">
+      <button class="auth-modal-close" id="customer-auth-close">&times;</button>
+      
+      <div class="auth-modal-logo">
+        <img src="logo.jpg" alt="RC">
+        <span>REAL CARS <strong>ETH</strong></span>
+      </div>
+
+      <div class="auth-modal-prompt">
+        Unlock premium details, specifications, pricing, and direct seller contacts for <strong>Real Cars ETH</strong> listings.
+      </div>
+
+      <div class="auth-modal-msg" id="customer-auth-msg"></div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tab-login-btn">Log In</button>
+        <button class="auth-tab-btn" id="tab-signup-btn">Sign Up</button>
+      </div>
+
+      <form class="auth-modal-form" id="customer-auth-form">
+        <div class="form-group" id="group-name" style="display: none;">
+          <label for="cust-name">Full Name</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-user-tag"></i>
+            <input type="text" id="cust-name" placeholder="Enter your full name">
+          </div>
+        </div>
+
+        <div class="form-group" id="group-phone" style="display: none;">
+          <label for="cust-phone">Phone Number</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-phone"></i>
+            <input type="tel" id="cust-phone" placeholder="e.g. +251911223344">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="cust-username">Username</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="cust-username" required placeholder="Enter username">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="cust-password">Password</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="cust-password" required placeholder="Enter password">
+          </div>
+        </div>
+
+        <button type="submit" class="auth-modal-submit" id="cust-submit-btn">Unlock Details</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    // Enforce authentication on the vehicle detail page
+    document.addEventListener('DOMContentLoaded', () => {
+      const raw = sessionStorage.getItem('rceth_car');
+      if (!raw) {
+        window.location.href = 'index.html';
+        return;
+      }
+      const car = JSON.parse(raw);
+
+      if (!isLoggedIn()) {
+        // Show auth modal, disable page interaction, and run inquiry on success
+        openAuthModal(() => {
+          recordInquiry(car);
+          window.location.reload();
+        });
+        
+        // Hide the close button in the modal so they MUST login/signup to see the car details
+        const closeBtn = document.getElementById('customer-auth-close');
+        if (closeBtn) closeBtn.style.display = 'none';
+      } else {
+        // Record inquiry as they've viewed the car details
+        recordInquiry(car);
+      }
+    });
+  </script>
+</body>
+</html>

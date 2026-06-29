@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real Cars ETH | Premium Auto Dealership Ethiopia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="i18n.js"></script>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <a href="#home" class="nav-logo">
+      <img src="logo.jpg" alt="RC" class="nav-logo-img">
+      <span>REAL CARS <strong>ETH</strong></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#home" data-i18n="nav-home">Home</a></li>
+      <li><a href="#inventory" data-i18n="nav-inventory">Inventory</a></li>
+      <li><a href="#videos" data-i18n="nav-videos">Videos</a></li>
+      <li><a href="#about" data-i18n="nav-about">About</a></li>
+      <li><a href="#contact" data-i18n="nav-contact">Contact</a></li>
+    </ul>
+    <button class="lang-toggle-btn" id="lang-toggle" style="margin-left: auto; margin-right: 15px;">
+      <i class="fa-solid fa-globe"></i>
+      <span id="lang-label">EN</span>
+    </button>
+    <div class="nav-auth-container" id="nav-auth-container"></div>
+    <a href="https://t.me/jossycarmar" target="_blank" class="nav-cta" id="header-tg-link" data-i18n="nav-cta">Contact Us</a>
+  </nav>
+
+  <!-- ══ HERO — 75vh, full width, 3D fills everything ══ -->
+  <section id="home" class="hero">
+
+    <div class="hero-viewer" id="car-viewer-wrap">
+
+      <!-- Loading screen -->
+      <div class="loader" id="mlo">
+        <div class="loader-ring"></div>
+        <p class="loader-brand">REAL CARS ETH</p>
+        <p class="loader-text">Initialising 3D<span class="loader-dots">...</span></p>
+        <div class="loader-track"><div class="loader-fill" id="mlo-fill"></div></div>
+        <p class="loader-pct" id="mlo-pct">0%</p>
+      </div>
+
+
+
+      <model-viewer
+        id="car-model-viewer"
+        src="/car.glb"
+        alt="3D Car — Real Cars ETH"
+        auto-rotate
+        auto-rotate-delay="2000"
+        rotation-per-second="2.7deg"
+        camera-controls
+        shadow-intensity="3"
+        shadow-softness="0.5"
+        environment-image="/ferndale_studio_04_4k.hdr"
+        skybox-height="1.5m"
+        tone-mapping="aces"
+        exposure="1.1"
+        field-of-view="32deg"
+        min-field-of-view="20deg"
+        max-field-of-view="72deg"
+        min-camera-orbit="auto 0deg 5%"
+        max-camera-orbit="auto 88deg 200%"
+        camera-orbit="18deg 72deg 105%"
+        camera-target="-0.25m 0.08m 0m"
+        interaction-prompt-threshold="500"
+        interpolation-decay="50"
+        style="width:100%;height:100%;--poster-color:#030507;"
+      >
+        <div slot="progress-bar"></div>
+      </model-viewer>
+
+      <!-- Shots dropdown -->
+      <div class="ctrl-shots" id="ctrl-shots">
+        <button class="ctrl-btn" id="shots-trigger">
+          <i class="fa-solid fa-film"></i> Shots
+          <i class="fa-solid fa-chevron-up ctrl-arrow"></i>
+        </button>
+        <div class="shots-menu" id="shots-menu">
+          <button class="shot-item cine-btn" data-shot="reveal"><i class="fa-solid fa-expand"></i> Reveal</button>
+          <button class="shot-item cine-btn" data-shot="drop"><i class="fa-solid fa-cloud-arrow-down"></i> Drop</button>
+          <button class="shot-item cine-btn" data-shot="orbit"><i class="fa-solid fa-rotate"></i> Orbit</button>
+          <button class="shot-item cine-btn" data-shot="lowsweep"><i class="fa-solid fa-arrow-trend-up"></i> Low Sweep</button>
+          <button class="shot-item cine-btn" data-shot="driveby"><i class="fa-solid fa-car-side"></i> Drive-By</button>
+          <button class="shot-item cine-btn" data-shot="interior"><i class="fa-solid fa-couch"></i> Interior</button>
+          <button class="shot-item cine-btn" data-shot="wheel"><i class="fa-solid fa-circle-notch"></i> Wheel</button>
+          <hr class="shots-sep">
+          <button class="shot-item shot-stop" id="cine-stop"><i class="fa-solid fa-stop"></i> Stop</button>
+        </div>
+      </div>
+
+      <!-- D-pad -->
+      <div class="cam-dpad" id="cam-dpad">
+        <button class="cam-btn" id="cam-up"><i class="fa-solid fa-chevron-up"></i></button>
+        <div class="cam-row">
+          <button class="cam-btn" id="cam-left"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="cam-btn cam-reset" id="cam-reset"><i class="fa-solid fa-camera-rotate"></i></button>
+          <button class="cam-btn" id="cam-right"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <button class="cam-btn" id="cam-down"><i class="fa-solid fa-chevron-down"></i></button>
+      </div>
+
+      <!-- Paint dropdown -->
+      <div class="ctrl-paint" id="ctrl-paint">
+        <button class="ctrl-btn" id="paint-trigger">
+          <span class="paint-dot" id="paint-dot" style="background:#f5c400"></span>
+          Paint <i class="fa-solid fa-chevron-up ctrl-arrow"></i>
+        </button>
+        <div class="paint-menu" id="paint-menu">
+          <div class="paint-grid" id="color-swatches">
+            <button class="swatch active" data-color="#f5c400" data-exposure="1.25" style="background:#f5c400" title="Gold"></button>
+            <button class="swatch" data-color="#e85d04" data-exposure="1.3"  style="background:#e85d04" title="Orange"></button>
+            <button class="swatch" data-color="#0d0d0d" data-exposure="1.6"  style="background:#0d0d0d" title="Black"></button>
+            <button class="swatch" data-color="#f0f0f0" data-exposure="1.1"  style="background:#f0f0f0" title="White"></button>
+            <button class="swatch" data-color="#b22222" data-exposure="1.3"  style="background:#b22222" title="Red"></button>
+            <button class="swatch" data-color="#1a4a8a" data-exposure="1.3"  style="background:#1a4a8a" title="Blue"></button>
+            <button class="swatch" data-color="#2d6a2d" data-exposure="1.3"  style="background:#2d6a2d" title="Green"></button>
+            <button class="swatch" data-color="#c0c0c0" data-exposure="1.2"  style="background:#c0c0c0" title="Silver"></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEMP DEBUG HUD — remove when done tuning -->
+      <!--
+      <div id="cam-hud" class="cam-hud">
+        <div class="cam-hud-title">📐 Camera Debug</div>
+        <div class="cam-hud-row"><span class="cam-hud-lbl">theta</span><span id="hud-theta">—</span></div>
+        <div class="cam-hud-row"><span class="cam-hud-lbl">phi</span><span id="hud-phi">—</span></div>
+        <div class="cam-hud-row"><span class="cam-hud-lbl">radius</span><span id="hud-radius">—</span></div>
+        <div class="cam-hud-row"><span class="cam-hud-lbl">target Y</span><span id="hud-ty">—</span></div>
+        <div class="cam-hud-btns">
+          <button id="hud-copy-orbit" class="cam-hud-btn">Copy Orbit</button>
+          <button id="hud-copy-target" class="cam-hud-btn">Copy Target</button>
+        </div>
+      </div>
+      -->
+
+    </div>
+
+    <!-- Brand text overlay — floats left over the 3D -->
+    <div class="hero-brand" id="hero-brand">
+      <span class="hero-label" data-i18n="hero-premium-label"><span class="hero-dot"></span> PREMIUM AUTO · ETHIOPIA</span>
+      <h1 class="hero-title" data-i18n="hero-title-main">Ethiopia's<br>Finest<br><em>Dealership.</em></h1>
+      <p class="hero-sub" data-i18n="hero-sub-text">Hand-picked imports. Verified listings.<br>Transparent pricing.</p>
+      <div class="hero-actions">
+        <a href="#inventory" class="hero-btn-primary" data-i18n="hero-btn-browse">Browse Inventory</a>
+        <a href="https://t.me/jossycarmar" target="_blank" class="hero-btn-ghost" data-i18n="hero-btn-contact">Contact Us</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><strong>500+</strong><span data-i18n="hero-stat-sold">Cars Sold</span></div>
+        <div class="hero-stat-sep"></div>
+        <div class="hero-stat"><strong>5yr</strong><span data-i18n="hero-stat-exp">Experience</span></div>
+        <div class="hero-stat-sep"></div>
+        <div class="hero-stat"><strong>100%</strong><span data-i18n="hero-stat-verified">Verified</span></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ══ INVENTORY ══ -->
+  <section id="inventory" class="inv-section">
+
+    <div class="fbar" id="filter-bar">
+      <div class="fbar-main">
+        <div class="fbar-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="search-input" placeholder="Search brand, model, year..." data-i18n="search-placeholder">
+        </div>
+        <div class="fbar-actions">
+          <button id="f-toggle" class="fbar-toggle-btn">
+            <i class="fa-solid fa-sliders"></i>
+            <span data-i18n="fbar-toggle-text">Filters</span>
+          </button>
+          <button id="f-clear" class="fbar-clear-btn">
+            <i class="fa-solid fa-rotate-left"></i>
+            <span data-i18n="fbar-clear-text">Reset</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="fbar-panel" id="filter-panel">
+        <div class="fbar-grid">
+          <div class="fbar-group">
+            <label class="fbar-label" data-i18n="fbar-trans-label">Transmission</label>
+            <select id="f-transmission" class="fbar-select">
+              <option value="" data-i18n="fbar-trans-all">Any Transmission</option>
+              <option value="automatic" data-i18n="fbar-trans-auto">Automatic</option>
+              <option value="manual" data-i18n="fbar-trans-manual">Manual</option>
+            </select>
+          </div>
+          <div class="fbar-group">
+            <label class="fbar-label" data-i18n="fbar-fuel-label">Fuel Type</label>
+            <select id="f-fuel" class="fbar-select">
+              <option value="" data-i18n="fbar-fuel-all">Any Fuel Type</option>
+              <option value="diesel" data-i18n="fbar-fuel-diesel">Diesel</option>
+              <option value="petrol" data-i18n="fbar-fuel-petrol">Petrol</option>
+              <option value="electric" data-i18n="fbar-fuel-electric">Electric</option>
+              <option value="hybrid" data-i18n="fbar-fuel-hybrid">Hybrid</option>
+            </select>
+          </div>
+          <div class="fbar-group">
+            <label class="fbar-label" data-i18n="fbar-year-label">Year Model</label>
+            <div class="fbar-range">
+              <input type="number" id="f-year-min" class="fbar-input" placeholder="Min Year" data-i18n="fbar-year-min">
+              <span class="fbar-range-sep" data-i18n="fbar-year-sep">to</span>
+              <input type="number" id="f-year-max" class="fbar-input" placeholder="Max Year" data-i18n="fbar-year-max">
+            </div>
+          </div>
+          <div class="fbar-group">
+            <label class="fbar-label" data-i18n="fbar-price-label">Price Range (Millions ETB)</label>
+            <div class="fbar-range">
+              <input type="number" id="f-price-min" class="fbar-input" placeholder="Min (M)" data-i18n="fbar-price-min">
+              <span class="fbar-range-sep" data-i18n="fbar-year-sep">to</span>
+              <input type="number" id="f-price-max" class="fbar-input" placeholder="Max (M)" data-i18n="fbar-price-max">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fbar-meta"><span id="filter-count">Loading…</span></div>
+    </div>
+
+    <div class="inv-heading">
+      <p class="section-eye" data-i18n="inv-collection">Collection</p>
+      <h2 class="section-h2" data-i18n="inv-heading">Available Vehicles</h2>
+    </div>
+
+    <div class="cars-grid" id="cars-grid"></div>
+    <div class="pagination" id="pagination"></div>
+
+  </section>
+
+  <!-- ══ VIDEOS ══ -->
+  <section id="videos" class="vids-section">
+    <div class="vids-heading">
+      <p class="section-eye" data-i18n="vids-heading-sub">TikTok</p>
+      <h2 class="section-h2" data-i18n="vids-heading-title">Watch Our Reviews</h2>
+    </div>
+    <div class="vids-track" id="videos-track">
+      <div class="vids-loading">
+        <div class="spin-ring"></div>
+        <p>Loading videos…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ ABOUT ══ -->
+  <section id="about" class="about-section">
+    <div class="about-layout">
+      <div class="about-text">
+        <p class="section-eye" data-i18n="about-heading-sub">About Us</p>
+        <h2 class="section-h2" data-i18n="about-heading-title">Ethiopia's Premier<br>Auto Dealership</h2>
+        <p class="about-body" data-i18n="about-body-text">We curate exceptional imported vehicles for discerning buyers across Ethiopia. Every car is hand-selected, verified, and priced with complete transparency.</p>
+        <a href="https://t.me/jossycarmar" target="_blank" class="about-link" data-i18n="about-link-text">Get in Touch <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+      <div class="about-stats">
+        <div class="about-stat-card">
+          <div class="asc-num"><strong data-target="500">0</strong><sup>+</sup></div>
+          <span data-i18n="about-stat-sold">Vehicles Sold</span>
+        </div>
+        <div class="about-stat-card">
+          <div class="asc-num"><strong data-target="12">0</strong><sup>K+</sup></div>
+          <span data-i18n="about-stat-clients">Happy Clients</span>
+        </div>
+        <div class="about-stat-card">
+          <div class="asc-num"><strong data-target="5">0</strong><sup> Yrs</sup></div>
+          <span data-i18n="about-stat-years">In Business</span>
+        </div>
+        <div class="about-stat-card">
+          <div class="asc-num"><strong data-target="100">0</strong><sup>%</sup></div>
+          <span data-i18n="about-stat-verified">Verified</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FOOTER ══ -->
+  <footer id="contact">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="logo.jpg" alt="RC" class="footer-logo">
+        <span>REAL CARS ETH</span>
+      </div>
+      <p class="footer-copy" data-i18n="footer-copy">&copy; 2026 Real Cars ETH &nbsp;·&nbsp; Premium Auto Dealership, Ethiopia</p>
+      <div class="footer-links">
+        <a href="https://t.me/jossycarmar" target="_blank" class="footer-link"><i class="fa-brands fa-telegram"></i> @jossycarmar</a>
+        <a href="tel:+251911000000" class="footer-link" data-i18n="footer-call"><i class="fa-solid fa-phone"></i> Call Us</a>
+        <a href="login.html" class="footer-link" data-i18n="footer-admin-access">
+          <i class="fa-solid fa-lock" style="font-size: 10px;"></i> Admin Access
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Customer Auth Modal (Popup on Car Touch) -->
+  <div class="auth-modal" id="customer-auth-modal">
+    <div class="auth-modal-content">
+      <button class="auth-modal-close" id="customer-auth-close">&times;</button>
+      
+      <div class="auth-modal-logo">
+        <img src="logo.jpg" alt="RC">
+        <span>REAL CARS <strong>ETH</strong></span>
+      </div>
+
+      <div class="auth-modal-prompt">
+        Unlock premium details, specifications, pricing, and direct seller contacts for <strong>Real Cars ETH</strong> listings.
+      </div>
+
+      <div class="auth-modal-msg" id="customer-auth-msg"></div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tab-login-btn">Log In</button>
+        <button class="auth-tab-btn" id="tab-signup-btn">Sign Up</button>
+      </div>
+
+      <form class="auth-modal-form" id="customer-auth-form">
+        <div class="form-group" id="group-name" style="display: none;">
+          <label for="cust-name">Full Name</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-user-tag"></i>
+            <input type="text" id="cust-name" placeholder="Enter your full name">
+          </div>
+        </div>
+
+        <div class="form-group" id="group-phone" style="display: none;">
+          <label for="cust-phone">Phone Number</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-phone"></i>
+            <input type="tel" id="cust-phone" placeholder="e.g. +251911223344">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="cust-username">Username</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="cust-username" required placeholder="Enter username">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="cust-password">Password</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="cust-password" required placeholder="Enter password">
+          </div>
+        </div>
+
+        <button type="submit" class="auth-modal-submit" id="cust-submit-btn">Unlock Details</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

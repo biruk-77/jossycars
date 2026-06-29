@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Access | Real Cars ETH</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background-color: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .auth-container {
+      background: #ffffff;
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+      width: 100%;
+      max-width: 440px;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 30px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text);
+    }
+    .auth-logo img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+    .auth-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .auth-header h1 {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .auth-header p {
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-wrapper i {
+      position: absolute;
+      left: 14px;
+      color: var(--accent);
+      font-size: 14px;
+    }
+    .input-wrapper input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.02);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 6px;
+      padding: 14px 14px 14px 40px;
+      font-size: 13.5px;
+      color: var(--text);
+      outline: none;
+      transition: var(--transition-smooth);
+    }
+    .input-wrapper input:focus {
+      border-color: var(--gold);
+      background: #ffffff;
+      box-shadow: 0 0 12px rgba(255, 210, 0, 0.15);
+    }
+    .auth-btn {
+      background: var(--gold);
+      color: var(--text);
+      border: none;
+      border-radius: 6px;
+      padding: 14px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      margin-top: 10px;
+      box-shadow: 0 4px 15px rgba(255, 210, 0, 0.2);
+    }
+    .auth-btn:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+    }
+    .auth-switch {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .auth-switch a {
+      color: var(--accent);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .auth-switch a:hover {
+      text-decoration: underline;
+    }
+    .auth-error {
+      background: rgba(178, 34, 34, 0.06);
+      border-left: 3px solid #b22222;
+      color: #b22222;
+      padding: 12px;
+      font-size: 12.5px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .auth-success {
+      background: rgba(45, 106, 45, 0.06);
+      border-left: 3px solid #2d6a2d;
+      color: #2d6a2d;
+      padding: 12px;
+      font-size: 12.5px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .back-home {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+    .back-home:hover {
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-container">
+    <div class="auth-logo">
+      <img src="logo.jpg" alt="RC">
+      <span>REAL CARS <strong>ETH</strong></span>
+    </div>
+
+    <div class="auth-header">
+      <h1 id="auth-title">Welcome Back</h1>
+      <p id="auth-sub">Administrator Access</p>
+    </div>
+
+    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-success" id="auth-success"></div>
+
+    <form class="auth-form" id="auth-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-user"></i>
+          <input type="text" id="username" required placeholder="Enter admin username">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" id="password" required placeholder="Enter password">
+        </div>
+      </div>
+
+      <button type="submit" class="auth-btn" id="submit-btn">Login</button>
+    </form>
+
+    <div class="auth-switch" id="auth-switch-box">
+      Don't have an account? <a id="toggle-auth">Sign Up</a>
+    </div>
+
+    <a href="index.html" class="back-home"><i class="fa-solid fa-chevron-left"></i> Back to Showcase</a>
+  </div>
+
+  <script>
+    let isLogin = true;
+
+    const authTitle = document.getElementById('auth-title');
+    const authSub = document.getElementById('auth-sub');
+    const submitBtn = document.getElementById('submit-btn');
+    const toggleAuth = document.getElementById('toggle-auth');
+    const authSwitchBox = document.getElementById('auth-switch-box');
+    const authForm = document.getElementById('auth-form');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const errorDiv = document.getElementById('auth-error');
+    const successDiv = document.getElementById('auth-success');
+
+    function attachToggleListener() {
+      const toggleBtn = document.getElementById('toggle-auth');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          isLogin = !isLogin;
+          errorDiv.style.display = 'none';
+          successDiv.style.display = 'none';
+          
+          if (isLogin) {
+            authTitle.textContent = 'Welcome Back';
+            authSub.textContent = 'Administrator Access';
+            submitBtn.textContent = 'Login';
+            authSwitchBox.innerHTML = `Don't have an account? <a id="toggle-auth">Sign Up</a>`;
+          } else {
+            authTitle.textContent = 'Create Admin';
+            authSub.textContent = 'Register New Account';
+            submitBtn.textContent = 'Sign Up';
+            authSwitchBox.innerHTML = `Already have an account? <a id="toggle-auth">Login</a>`;
+          }
+          attachToggleListener();
+        });
+      }
+    }
+
+    attachToggleListener();
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorDiv.style.display = 'none';
+      successDiv.style.display = 'none';
+
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Authentication failed');
+        }
+
+        successDiv.textContent = isLogin ? 'Login successful! Redirecting...' : 'Signup successful! Redirecting...';
+        successDiv.style.display = 'block';
+
+        // Store JWT token and username
+        localStorage.setItem('rceth_token', data.token);
+        localStorage.setItem('rceth_username', data.username);
+
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1200);
+
+      } catch (err) {
+        errorDiv.textContent = err.message;
+        errorDiv.style.display = 'block';
+      }
+    });
+
+    // Check if already logged in
+    const existingToken = localStorage.getItem('rceth_token');
+    if (existingToken) {
+      window.location.href = 'dashboard.html';
+    }
+  </script>
+</body>
+</html>

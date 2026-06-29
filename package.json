@@ -1,0 +1,19 @@
+{
+  "name": "jossy-real-cars-website",
+  "version": "1.0.0",
+  "description": "Pitch website for Jossy Real Cars dealership in Ethiopia, featuring public Telegram feed integration.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.8",
+    "bcryptjs": "^3.0.3",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.7.3"
+  }
+}
