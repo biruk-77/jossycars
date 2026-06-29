@@ -49,9 +49,27 @@
 
 
 
+      <!-- Fallback loader for local file viewing to prevent CORS errors -->
+      <script>
+        (function() {
+          const isFileProtocol = window.location.protocol === 'file:';
+          if (isFileProtocol) {
+            document.write('<style>#car-model-viewer { visibility: hidden; }</style>');
+            document.addEventListener('DOMContentLoaded', () => {
+              const mv = document.getElementById('car-model-viewer');
+              if (mv) {
+                mv.setAttribute('src', 'https://raw.githubusercontent.com/biruk-77/jossycars/main/public/car.glb');
+                mv.setAttribute('environment-image', 'https://raw.githubusercontent.com/biruk-77/jossycars/main/public/ferndale_studio_04_4k_1k.hdr');
+                mv.style.visibility = 'visible';
+              }
+            });
+          }
+        })();
+      </script>
+
       <model-viewer
         id="car-model-viewer"
-        src="https://raw.githubusercontent.com/biruk-77/jossycars/main/public/car.glb"
+        src="car.glb"
         alt="3D Car — Real Cars ETH"
         auto-rotate
         auto-rotate-delay="2000"
@@ -59,7 +77,7 @@
         camera-controls
         shadow-intensity="3"
         shadow-softness="0.5"
-        environment-image="https://raw.githubusercontent.com/biruk-77/jossycars/main/public/ferndale_studio_04_4k.hdr"
+        environment-image="ferndale_studio_04_4k_1k.hdr"
         skybox-height="1.5m"
         tone-mapping="aces"
         exposure="1.1"
