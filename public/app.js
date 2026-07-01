@@ -37,8 +37,7 @@ function initHeroAnimations() {
     const mv = document.getElementById('car-model-viewer');
     if (!mv) return;
 
-    // Reset initial states for zoom and opacity in JS to ensure seamless anim start
-    gsap.set(mv, { opacity: 0 });
+    // Keep model-viewer visible — hiding it causes a white flash after the loader fades
     
     // Ensure hero-viewer spans across the left to prevent clipping while positioning the car on the right
     const viewerWrap = document.getElementById('car-viewer-wrap');
@@ -79,8 +78,7 @@ function initHeroAnimations() {
       }
     });
 
-    // 1. Fade in the 3D model-viewer
-    tl.to(mv, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0);
+    // Model-viewer stays at full opacity — it's already visible after the loader
 
     // 2. The Flexing Stage 1: Ultra close-up zoom & rotate
     tl.to(params, {
@@ -119,49 +117,44 @@ function initHeroAnimations() {
 
 
 
-    // ── Luxury text entrance — fires after car settles (settle ends at 4.3s) ──
+    // ── Luxury text entrance — fires immediately when loading ends ──
     splitTitleLines();
     gsap.set('.hero-title', { opacity: 1 });
     gsap.set('.htl', { y: '108%' });
 
-    // Label — starts as car is winding down, letter-spacing collapses inward
+    // Label — letter-spacing collapses inward while car is flexing
     tl.fromTo('.hero-label',
       { opacity: 0, letterSpacing: '0.42em' },
       { opacity: 1, letterSpacing: '0.14em', duration: 1.9, ease: 'power4.out' },
-      3.9
+      0.1
     )
-    // Title lines — curtain-lift one by one, right after car stops
+    // Title lines — curtain-lift one by one
     .to('.htl',
       { y: '0%', duration: 1.55, stagger: 0.21, ease: 'power4.out' },
-      4.2
+      0.4
     )
-    // Subtitle — whispers in after title is done
+    // Subtitle — whispers in
     .fromTo('.hero-sub',
       { opacity: 0, y: 10 },
       { opacity: 1, y: 0, duration: 1.4, ease: 'power4.out' },
-      5.1
+      1.3
     )
     // CTA buttons — float up softly
     .fromTo('.hero-actions',
       { opacity: 0, y: 8 },
       { opacity: 1, y: 0, duration: 1.2, ease: 'power4.out' },
-      5.45
+      1.65
     )
     // Stats — pure fade, no movement
     .fromTo('.hero-stats',
       { opacity: 0 },
       { opacity: 1, duration: 1.1, ease: 'power2.out' },
-      5.75
+      1.95
     )
     // Controls — last to arrive
-    .fromTo('.ctrl-paint', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, 5.85)
-    .fromTo('.ctrl-shots', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, 5.95)
-    .fromTo('.cam-dpad',   { opacity: 0, x: 10 }, { opacity: 1, x: 0, duration: 0.9, ease: 'power3.out' }, 6.05)
-    .call(() => {
-      if (typeof window.startAutoCine === 'function') {
-        window.startAutoCine();
-      }
-    });
+    .fromTo('.ctrl-paint', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, 2.1)
+    .fromTo('.ctrl-shots', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, 2.2)
+    .fromTo('.cam-dpad',   { opacity: 0, x: 10 }, { opacity: 1, x: 0, duration: 0.9, ease: 'power3.out' }, 2.3);
   };
 
   // Parallax scrolling on the 3D car viewer
