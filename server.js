@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json()); // support json encoded bodies
 app.use(express.static(path.join(__dirname, 'public')));
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://biruk:2580@cluster0.3zyiy7b.mongodb.net/realcars?retryWrites=true&w=majority&appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://whatsrye_db_user:tDahYFzP6xbWRUin@cluster0.vyv2ezx.mongodb.net/realcars?retryWrites=true&w=majority&appName=Cluster0';
 
 mongoose.set('bufferCommands', false);
 
