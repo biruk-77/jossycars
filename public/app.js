@@ -111,14 +111,14 @@ function initHeroAnimations() {
 
 
     // 6. Stagger in the UI text, buttons, and panels immediately so they load side-by-side (luxury entry style)
-    tl.fromTo('.hero-label',   { opacity: 0, y: 20, filter: 'blur(10px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.2, ease: 'power4.out' }, 0.1)
-      .fromTo('.hero-title',   { opacity: 0, y: 35, filter: 'blur(15px)', scale: 1.05 }, { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1, duration: 1.6, ease: 'power4.out' }, 0.2)
-      .fromTo('.hero-sub',     { opacity: 0, y: 20, filter: 'blur(10px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.2, ease: 'power4.out' }, 0.3)
-      .fromTo('.hero-actions', { opacity: 0, y: 15, filter: 'blur(8px)' },  { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.2, ease: 'power4.out' }, 0.4)
-      .fromTo('.hero-stats',   { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 1.2, ease: 'power4.out' }, 0.5)
-      .fromTo('.ctrl-paint',   { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 0.6)
-      .fromTo('.ctrl-shots',   { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 0.7)
-      .fromTo('.cam-dpad',     { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.8, ease: 'power3.out' }, 0.8);
+    tl.fromTo('.hero-label',   { opacity: 0, y: 12, filter: 'blur(6px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.0, ease: 'power3.out' }, 0.1)
+      .fromTo('.hero-title',   { opacity: 0, y: 20, filter: 'blur(8px)', scale: 1.01 }, { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1, duration: 1.4, ease: 'power3.out' }, 0.2)
+      .fromTo('.hero-sub',     { opacity: 0, y: 12, filter: 'blur(6px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.0, ease: 'power3.out' }, 0.3)
+      .fromTo('.hero-actions', { opacity: 0, y: 8, filter: 'blur(4px)' },  { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.0, ease: 'power3.out' }, 0.4)
+      .fromTo('.hero-stats',   { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 1.0, ease: 'power3.out' }, 0.5)
+      .fromTo('.ctrl-paint',   { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 0.6)
+      .fromTo('.ctrl-shots',   { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 0.7)
+      .fromTo('.cam-dpad',     { opacity: 0, x: 15 }, { opacity: 1, x: 0, duration: 0.8, ease: 'power3.out' }, 0.8);
   };
 
   // Parallax scrolling on the 3D car viewer
