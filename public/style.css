@@ -175,7 +175,7 @@ button, select, input { font-family: 'Outfit', sans-serif; }
   z-index: 15;
   background: transparent;
 }
-.hero-viewer model-viewer { width: 100%; height: 100%; display: block; }
+.hero-viewer model-viewer { width: 100%; height: 100%; display: block; outline: none !important; }
 
 /* Hero brand overlay */
 .hero-brand {
