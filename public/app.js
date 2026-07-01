@@ -34,9 +34,7 @@ function initHeroAnimations() {
     // Ensure hero-viewer is full screen and has transparent background
     const viewerWrap = document.getElementById('car-viewer-wrap');
     if (viewerWrap) {
-      const leftVal = isMobile ? 0 : '30%';
-      const widthVal = isMobile ? '100%' : '70%';
-      gsap.set(viewerWrap, { left: leftVal, width: widthVal, backgroundColor: 'transparent', zIndex: 15 });
+      gsap.set(viewerWrap, { left: 0, width: '100%', backgroundColor: 'transparent', zIndex: 15 });
     }
 
     // Parameters for flexing the 3D car model directly
@@ -96,7 +94,7 @@ function initHeroAnimations() {
 
     // 4. Settle Stage: Retreat to the designated spot on the right & zoom out to default
     const targetFov = isMobile ? 45 : 32;
-    const targetTx = 0; // Keep the pivot center perfectly on the car for clean rotations
+    const targetTx = isMobile ? 0 : -0.62;
 
     tl.to(params, {
       theta: 378, // Hold final angle matching 18deg
