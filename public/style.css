@@ -999,23 +999,142 @@ footer { background: #ffffff; border-top: 1px solid rgba(0,0,0,0.04); padding: 6
 }
 @media (max-width: 768px) {
   .nav-links { display: none; }
-  .hero { height: 80vh; }
-  .hero-title { font-size: clamp(44px, 11vw, 70px); letter-spacing: -2px; }
-  .hero-brand { width: 100%; padding: 0 5%; }
+  .hero {
+    height: auto !important;
+    min-height: unset !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+  .hero::before, .hero::after {
+    display: none !important;
+  }
+  .hero-brand {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 90px 24px 20px 24px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    order: 1 !important;
+    pointer-events: auto !important;
+  }
+  .hero-brand::before, .hero-brand::after {
+    display: none !important;
+  }
+  .hero-title {
+    font-size: clamp(38px, 10vw, 54px) !important;
+    line-height: 1.0 !important;
+    letter-spacing: -1.5px !important;
+    padding-left: 0 !important;
+    margin: 0 !important;
+  }
+  .hero-sub {
+    font-size: 14.5px !important;
+    line-height: 1.5 !important;
+    padding-left: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  .hero-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 12px !important;
+    padding-left: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+  .hero-actions a {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 14px 16px !important;
+    font-size: 11px !important;
+  }
+  .hero-stats {
+    display: flex !important;
+    padding-left: 0 !important;
+    gap: 16px !important;
+    margin-top: 10px !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+  .hero-stat {
+    flex: 1 !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  .hero-stat-sep {
+    align-self: center !important;
+  }
+  .hero-viewer {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    height: 380px !important;
+    order: 2 !important;
+    margin-top: 10px !important;
+    margin-bottom: 20px !important;
+  }
+  .hero-viewer model-viewer {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .ctrl-shots {
+    position: absolute !important;
+    bottom: 20px !important;
+    left: 20px !important;
+    transform: none !important;
+    z-index: 30 !important;
+  }
+  .ctrl-paint {
+    position: absolute !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 30 !important;
+  }
+  .shots-menu {
+    left: 0 !important;
+    transform: translateY(15px) !important;
+  }
+  .ctrl-shots.open .shots-menu {
+    transform: translateY(0) !important;
+  }
   .about-stats { grid-template-columns: 1fr 1fr; }
   .cars-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-  .cam-dpad { display: none; }
+  .cam-dpad { display: none !important; }
 }
 @media (max-width: 580px) {
   .fbar-grid { grid-template-columns: 1fr; }
   .fbar-panel.open { max-height: 520px; }
 }
 @media (max-width: 480px) {
-  .hero-brand { width: 100%; padding: 0 5%; }
-  .hero-brand::after { display: none; }
-  .hero-title { font-size: 40px; }
-  .hero-actions { flex-direction: column; }
-  .hero-stats { flex-wrap: wrap; gap: 18px; }
+  .hero-brand {
+    padding: 85px 16px 15px 16px !important;
+  }
+  .hero-title {
+    font-size: 38px !important;
+  }
+  .hero-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .hero-stats {
+    flex-wrap: wrap !important;
+    gap: 16px !important;
+    justify-content: center !important;
+  }
+  .hero-stat {
+    flex: unset !important;
+  }
+  .hero-stat-sep {
+    display: none !important;
+  }
   .cars-grid { grid-template-columns: 1fr; }
   .about-stat-card strong { font-size: 44px; }
   .about-stats { grid-template-columns: 1fr; }
