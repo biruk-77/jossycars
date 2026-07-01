@@ -449,6 +449,13 @@
         </div>
         <div class="stat-icon" style="background: rgba(46, 213, 115, 0.08); color: #2ed573;"><i class="fa-solid fa-user-group"></i></div>
       </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>Registered Users</h3>
+          <p id="stat-users">0</p>
+        </div>
+        <div class="stat-icon" style="background: rgba(99, 102, 241, 0.08); color: #6366f1;"><i class="fa-solid fa-users"></i></div>
+      </div>
     </div>
 
     <!-- Car Listings Panel -->
@@ -503,6 +510,35 @@
       </div>
     </div>
 
+    <!-- Users Management Panel -->
+    <div class="listings-panel" style="margin-top: 30px;">
+      <div class="panel-header" style="padding: 20px 24px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; background: #faf9f6;">
+        <h2 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0; color: var(--text-muted);">Registered Users</h2>
+        <span style="font-size: 11px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 1px;" id="users-count-meta">0 users</span>
+      </div>
+      <div class="listings-table-wrap">
+        <table class="listings-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Phone</th>
+              <th>Role</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-dim);">
+                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; margin-bottom: 12px;"></i>
+                <p>Loading users...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </main>
 
   <!-- Add/Edit Vehicle Modal -->
@@ -533,6 +569,13 @@
         <div class="form-group">
           <label for="car-photos">Photo URLs (One per line)</label>
           <textarea id="car-photos" rows="3" placeholder="https://images.unsplash.com/photo-1525609004556-c46c7d6cf0a3?w=800"></textarea>
+          <div style="margin-top: 8px; display: flex; align-items: center; gap: 10px;">
+            <input type="file" id="upload-photo-input" accept="image/*" multiple style="display: none;">
+            <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 9px; margin-top: 0; display: inline-flex; align-items: center; gap: 4px;" onclick="document.getElementById('upload-photo-input').click()">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload Images
+            </button>
+            <span id="upload-status" style="font-size: 11.5px; color: var(--text-dim);"></span>
+          </div>
         </div>
 
         <div class="form-group">
@@ -720,6 +763,92 @@
       }
     };
 
+    // ── Users Management ──
+    let dbUsers = [];
+
+    async function loadUsers() {
+      try {
+        const res = await fetch('/api/users', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Could not fetch users');
+        dbUsers = await res.json();
+        renderUsersTable();
+        document.getElementById('stat-users').textContent = dbUsers.length;
+        document.getElementById('users-count-meta').textContent = `${dbUsers.length} user${dbUsers.length !== 1 ? 's' : ''}`;
+      } catch (err) {
+        console.error('Error loading users:', err);
+      }
+    }
+
+    function renderUsersTable() {
+      const tbody = document.getElementById('users-tbody');
+      if (!tbody) return;
+      if (dbUsers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-dim);"><p>No users registered yet.</p></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = '';
+      dbUsers.forEach(u => {
+        const tr = document.createElement('tr');
+        const joinedDate = u._id ? new Date(parseInt(u._id.substring(0,8), 16) * 1000).toLocaleDateString() : '—';
+        const isAdmin = u.role === 'admin';
+        const roleColor = isAdmin ? '#d4af37' : '#6366f1';
+        const roleBg = isAdmin ? 'rgba(212,175,55,0.1)' : 'rgba(99,102,241,0.1)';
+        tr.innerHTML = `
+          <td>
+            <div style="font-weight:700;color:var(--text);">${u.name || '—'}</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">@${u.username}</div>
+          </td>
+          <td style="font-size:13px;color:var(--text-muted);">${u.phone || '—'}</td>
+          <td>
+            <span style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:4px;background:${roleBg};color:${roleColor};">${u.role}</span>
+          </td>
+          <td style="font-size:12px;color:var(--text-dim);">${joinedDate}</td>
+          <td>
+            <div class="row-actions">
+              <button class="row-btn" title="${isAdmin ? 'Demote to User' : 'Promote to Admin'}" onclick="toggleUserRole('${u._id}','${isAdmin ? 'user' : 'admin'}')" style="color:${roleColor};border-color:${roleBg};">
+                <i class="fa-solid ${isAdmin ? 'fa-user-minus' : 'fa-user-shield'}"></i>
+              </button>
+              <button class="row-btn row-btn-delete" title="Delete User" onclick="deleteUser('${u._id}')">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.deleteUser = async function(id) {
+      if (!confirm('Delete this user permanently?')) return;
+      try {
+        const res = await fetch(`/api/users/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not delete user');
+        showToast('User deleted successfully');
+        loadUsers();
+      } catch (err) { showToast(err.message, true); }
+    };
+
+    window.toggleUserRole = async function(id, newRole) {
+      const label = newRole === 'admin' ? 'promote to Admin' : 'demote to User';
+      if (!confirm(`Are you sure you want to ${label}?`)) return;
+      try {
+        const res = await fetch(`/api/users/${id}/role`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ role: newRole })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not update role');
+        showToast(`Role updated to ${newRole}`);
+        loadUsers();
+      } catch (err) { showToast(err.message, true); }
+    };
+
     function renderTable() {
       if (dbCars.length === 0) {
         listingsTbody.innerHTML = `
@@ -791,6 +920,70 @@
     modalCancel.addEventListener('click', closeModal);
     window.addEventListener('click', (e) => {
       if (e.target === modal) closeModal();
+    });
+
+    // Image upload handler
+    document.getElementById('upload-photo-input').addEventListener('change', async (e) => {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+      
+      const statusEl = document.getElementById('upload-status');
+      statusEl.textContent = `Uploading ${files.length} image(s)...`;
+      statusEl.style.color = 'var(--text-muted)';
+      
+      const uploadedUrls = [];
+      const token = localStorage.getItem('rceth_token');
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // Convert file to Base64 using FileReader
+        const reader = new FileReader();
+        const filePromise = new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        
+        try {
+          const base64Data = await filePromise;
+          
+          const res = await fetch('/api/upload', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              base64Data,
+              fileName: file.name
+            })
+          });
+          
+          if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || 'Failed to upload image');
+          }
+          
+          const data = await res.json();
+          uploadedUrls.push(data.url);
+        } catch (err) {
+          console.error(err);
+          showToast(`Error uploading ${file.name}: ${err.message}`, true);
+        }
+      }
+      
+      if (uploadedUrls.length > 0) {
+        const textarea = document.getElementById('car-photos');
+        const currentText = textarea.value.trim();
+        const urlsText = uploadedUrls.join('\n');
+        
+        textarea.value = currentText ? `${currentText}\n${urlsText}` : urlsText;
+        showToast(`Uploaded ${uploadedUrls.length} image(s) successfully`);
+      }
+      
+      statusEl.textContent = '';
+      e.target.value = ''; // clear input
     });
 
     // CRUD: Add/Edit Submission
@@ -903,6 +1096,7 @@
     // Boot
     loadListings();
     loadInquiries();
+    loadUsers();
   </script>
 </body>
 </html>

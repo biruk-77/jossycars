@@ -6,12 +6,14 @@ const path = require('path');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json()); // support json encoded bodies
+app.use(express.json({ limit: '10mb' })); // support json encoded bodies
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://whatsrye_db_user:tDahYFzP6xbWRUin@cluster0.vyv2ezx.mongodb.net/realcars?retryWrites=true&w=majority&appName=Cluster0';
@@ -369,6 +371,70 @@ app.get('/api/auth/me', authenticateToken, (req, res) => {
   res.json({ username: req.user.username, role: req.user.role, name: req.user.name || '', phone: req.user.phone || '' });
 });
 
+// ── File Upload API (Base64) ──
+app.post('/api/upload', authenticateToken, (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden: Admins only' });
+    }
+    const { base64Data, fileName } = req.body;
+    if (!base64Data) {
+      return res.status(400).json({ error: 'No image data provided' });
+    }
+    const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      return res.status(400).json({ error: 'Invalid base64 image data' });
+    }
+    const imageBuffer = Buffer.from(matches[2], 'base64');
+    const extension = fileName ? path.extname(fileName) : '.jpg';
+    const uniqueFileName = `upload_${Date.now()}_${Math.floor(Math.random() * 10000)}${extension}`;
+    const uploadsDir = path.join(__dirname, 'public', 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    const filePath = path.join(uploadsDir, uniqueFileName);
+    fs.writeFileSync(filePath, imageBuffer);
+    const relativeUrl = `/uploads/${uniqueFileName}`;
+    res.status(201).json({ url: relativeUrl });
+  } catch (err) {
+    console.error('Upload error:', err);
+    res.status(500).json({ error: 'Failed to process image upload' });
+  }
+});
+
+// ── Users Management API ──
+app.get('/api/users', authenticateToken, async (req, res) => {
+  if (mongoose.connection.readyState !== 1) return res.status(503).json({ error: 'Database is offline.' });
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden: Admins only' });
+  try {
+    const users = await User.find({}, { password: 0 }).sort({ _id: -1 });
+    res.json(users);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/users/:id', authenticateToken, async (req, res) => {
+  if (mongoose.connection.readyState !== 1) return res.status(503).json({ error: 'Database is offline.' });
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden: Admins only' });
+  if (req.params.id === req.user.id) return res.status(400).json({ error: 'Cannot delete your own account' });
+  try {
+    const result = await User.deleteOne({ _id: req.params.id });
+    if (result.deletedCount === 0) return res.status(404).json({ error: 'User not found' });
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.patch('/api/users/:id/role', authenticateToken, async (req, res) => {
+  if (mongoose.connection.readyState !== 1) return res.status(503).json({ error: 'Database is offline.' });
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden: Admins only' });
+  const { role } = req.body;
+  if (!['admin', 'user'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true, select: '-password' });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ message: 'Role updated', user });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ── Inquiries API ──
 app.post('/api/inquiries', async (req, res) => {
   if (mongoose.connection.readyState !== 1) {
@@ -571,7 +637,6 @@ app.get('/api/tiktok', (_req, res) => {
 // ── 3D Model proxy ─────────────────────────────────────────
 // If user drops their own car.glb in /public, Express static serves it.
 // If not, this route fetches the Ferrari demo model and streams it.
-const fs = require('fs');
 
 app.get('/car.glb', async (_req, res) => {
   const local = path.join(__dirname, 'public', 'car.glb');
