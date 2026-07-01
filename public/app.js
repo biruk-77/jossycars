@@ -12,16 +12,25 @@ let currentCars = [];
 
 /* ── Hero Entrance ────────────────────────────────────── */
 function initHeroAnimations() {
-  // Set initial states for entrance stagger
-  gsap.set('.hero-label',   { opacity: 0, y: 30 });
-  gsap.set('.hero-title',   { opacity: 0, y: 45 });
-  gsap.set('.hero-sub',     { opacity: 0, y: 30 });
-  gsap.set('.hero-actions', { opacity: 0, y: 25 });
-  gsap.set('.hero-stats',   { opacity: 0, y: 20 });
-  
-  gsap.set('.ctrl-paint',   { opacity: 0, y: 20 });
-  gsap.set('.ctrl-shots',   { opacity: 0, y: 20 });
-  gsap.set('.cam-dpad',     { opacity: 0, x: 20 });
+  // Hide everything off-stage — no flash before animation
+  gsap.set(['.hero-label','.hero-title','.hero-sub','.hero-actions','.hero-stats','.ctrl-paint','.ctrl-shots','.cam-dpad'], { opacity: 0 });
+
+  // Split .hero-title by <br> lines so each line can curtain-lift independently
+  function splitTitleLines() {
+    const el = document.querySelector('.hero-title');
+    if (!el || el.dataset.lxSplit) return;
+    el.dataset.lxSplit = 'true';
+    el.innerHTML = el.innerHTML
+      .split(/<br\s*\/?>/i)
+      .map(line => `<span class="htl-wrap"><span class="htl">${line}</span></span>`)
+      .join('');
+    if (!document.getElementById('htl-style')) {
+      const s = document.createElement('style');
+      s.id = 'htl-style';
+      s.textContent = '.htl-wrap{display:block;overflow:hidden;padding-bottom:0.05em;}.htl{display:block;}';
+      document.head.appendChild(s);
+    }
+  }
 
   window.runEntranceTransition = function() {
     const isMobile = window.innerWidth <= 1024;
@@ -31,11 +40,11 @@ function initHeroAnimations() {
     // Reset initial states for zoom and opacity in JS to ensure seamless anim start
     gsap.set(mv, { opacity: 0 });
     
-    // Ensure hero-viewer is positioned on the right and has transparent background
+    // Ensure hero-viewer spans across the left to prevent clipping while positioning the car on the right
     const viewerWrap = document.getElementById('car-viewer-wrap');
     if (viewerWrap) {
-      const leftVal = isMobile ? 0 : '30%';
-      const widthVal = isMobile ? '100%' : '70%';
+      const leftVal = 0;
+      const widthVal = isMobile ? '100%' : '135%';
       gsap.set(viewerWrap, { left: leftVal, width: widthVal, backgroundColor: 'transparent', zIndex: 15 });
     }
 
@@ -110,15 +119,49 @@ function initHeroAnimations() {
 
 
 
-    // 6. Stagger in the UI text, buttons, and panels immediately so they load side-by-side (luxury entry style)
-    tl.fromTo('.hero-label',   { opacity: 0, y: 12, filter: 'blur(6px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.0, ease: 'power3.out' }, 0.1)
-      .fromTo('.hero-title',   { opacity: 0, y: 20, filter: 'blur(8px)', scale: 1.01 }, { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1, duration: 1.4, ease: 'power3.out' }, 0.2)
-      .fromTo('.hero-sub',     { opacity: 0, y: 12, filter: 'blur(6px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.0, ease: 'power3.out' }, 0.3)
-      .fromTo('.hero-actions', { opacity: 0, y: 8, filter: 'blur(4px)' },  { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.0, ease: 'power3.out' }, 0.4)
-      .fromTo('.hero-stats',   { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 1.0, ease: 'power3.out' }, 0.5)
-      .fromTo('.ctrl-paint',   { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 0.6)
-      .fromTo('.ctrl-shots',   { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 0.7)
-      .fromTo('.cam-dpad',     { opacity: 0, x: 15 }, { opacity: 1, x: 0, duration: 0.8, ease: 'power3.out' }, 0.8);
+    // ── Luxury text entrance — fires after car settles (settle ends at 4.3s) ──
+    splitTitleLines();
+    gsap.set('.hero-title', { opacity: 1 });
+    gsap.set('.htl', { y: '108%' });
+
+    // Label — starts as car is winding down, letter-spacing collapses inward
+    tl.fromTo('.hero-label',
+      { opacity: 0, letterSpacing: '0.42em' },
+      { opacity: 1, letterSpacing: '0.14em', duration: 1.9, ease: 'power4.out' },
+      3.9
+    )
+    // Title lines — curtain-lift one by one, right after car stops
+    .to('.htl',
+      { y: '0%', duration: 1.55, stagger: 0.21, ease: 'power4.out' },
+      4.2
+    )
+    // Subtitle — whispers in after title is done
+    .fromTo('.hero-sub',
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 1.4, ease: 'power4.out' },
+      5.1
+    )
+    // CTA buttons — float up softly
+    .fromTo('.hero-actions',
+      { opacity: 0, y: 8 },
+      { opacity: 1, y: 0, duration: 1.2, ease: 'power4.out' },
+      5.45
+    )
+    // Stats — pure fade, no movement
+    .fromTo('.hero-stats',
+      { opacity: 0 },
+      { opacity: 1, duration: 1.1, ease: 'power2.out' },
+      5.75
+    )
+    // Controls — last to arrive
+    .fromTo('.ctrl-paint', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, 5.85)
+    .fromTo('.ctrl-shots', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, 5.95)
+    .fromTo('.cam-dpad',   { opacity: 0, x: 10 }, { opacity: 1, x: 0, duration: 0.9, ease: 'power3.out' }, 6.05)
+    .call(() => {
+      if (typeof window.startAutoCine === 'function') {
+        window.startAutoCine();
+      }
+    });
   };
 
   // Parallax scrolling on the 3D car viewer
@@ -686,17 +729,66 @@ function init3DShowcase() {
     cineTimeline = tl;
   }
 
+  /* Cinematic Auto-Cycle */
+  const CINE_SEQUENCE = ['reveal', 'drop', 'lowsweep', 'driveby', 'wheel', 'orbit'];
+  let cineSeqIdx = 0;
+  let autoCineTimer = null;
+
+  function playNextAutoCine() {
+    const shot = CINE_SEQUENCE[cineSeqIdx];
+    const btn = document.querySelector(`.cine-btn[data-shot="${shot}"]`);
+    if (btn) {
+      playCine(shot, btn);
+    }
+    
+    // Custom duration per cinematic transition to allow completion
+    let duration = 9000; // default 9 seconds
+    if (shot === 'reveal') duration = 9500;
+    if (shot === 'lowsweep') duration = 9500;
+    if (shot === 'orbit') duration = 15000; // orbit can run longer
+    if (shot === 'drop') duration = 7000;
+    if (shot === 'driveby') duration = 7000;
+    if (shot === 'wheel') duration = 8500;
+    
+    cineSeqIdx = (cineSeqIdx + 1) % CINE_SEQUENCE.length;
+    autoCineTimer = setTimeout(playNextAutoCine, duration);
+  }
+
+  function startAutoCine() {
+    stopAutoCine();
+    cineSeqIdx = 0;
+    playNextAutoCine();
+  }
+
+  function stopAutoCine() {
+    clearTimeout(autoCineTimer);
+    autoCineTimer = null;
+  }
+
+  // Expose to window for call from the entrance transition
+  window.startAutoCine = startAutoCine;
+  window.stopAutoCine = stopAutoCine;
+
   document.querySelectorAll('.cine-btn').forEach(btn => {
-    btn.addEventListener('click', () => playCine(btn.dataset.shot, btn));
+    btn.addEventListener('click', () => {
+      stopAutoCine(); // stop auto-cycling on manual click
+      playCine(btn.dataset.shot, btn);
+    });
   });
 
   const DEFAULT_ORBIT = '0deg 75deg 105%';
   let panY = 0;
 
   document.getElementById('cine-stop')?.addEventListener('click', () => {
+    stopAutoCine(); // stop auto-cycling
     stopCine(); panY = 0;
     mv.cameraOrbit  = DEFAULT_ORBIT;
     mv.cameraTarget = 'auto auto auto';
+  });
+
+  // Stop auto-cycling if user drags or interacts with the 3D model manually
+  mv?.addEventListener('user-interaction', () => {
+    stopAutoCine();
   });
 
   function rotateCamera(d) {
