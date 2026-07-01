@@ -591,6 +591,28 @@
     </div>
   </div>
 
+  <!-- Reset Password Modal -->
+  <div class="modal" id="reset-pw-modal">
+    <div class="modal-content" style="max-width: 420px;">
+      <div class="modal-header">
+        <h2 style="font-size:18px;">Reset Password</h2>
+        <button class="modal-close" id="reset-pw-close">&times;</button>
+      </div>
+      <form class="modal-form" id="reset-pw-form">
+        <p style="font-size:13px;color:var(--text-muted);margin:0;">Set a new password for <strong id="reset-pw-username"></strong></p>
+        <div class="form-group">
+          <label for="reset-pw-input">New Password</label>
+          <input type="password" id="reset-pw-input" placeholder="Min. 6 characters" required>
+        </div>
+        <p id="reset-pw-error" style="color:#b22222;font-size:12px;margin:0;"></p>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="reset-pw-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Reset Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div class="toast" id="toast">Listing saved successfully.</div>
 
@@ -767,17 +789,22 @@
     let dbUsers = [];
 
     async function loadUsers() {
+      const tbody = document.getElementById('users-tbody');
       try {
         const res = await fetch('/api/users', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) throw new Error('Could not fetch users');
-        dbUsers = await res.json();
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not fetch users');
+        dbUsers = data;
         renderUsersTable();
         document.getElementById('stat-users').textContent = dbUsers.length;
         document.getElementById('users-count-meta').textContent = `${dbUsers.length} user${dbUsers.length !== 1 ? 's' : ''}`;
       } catch (err) {
         console.error('Error loading users:', err);
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:#b22222;"><i class="fa-solid fa-triangle-exclamation" style="font-size:20px;margin-bottom:8px;"></i><p style="margin:6px 0 0;">${err.message}</p></td></tr>`;
+        }
       }
     }
 
@@ -807,6 +834,9 @@
           <td style="font-size:12px;color:var(--text-dim);">${joinedDate}</td>
           <td>
             <div class="row-actions">
+              <button class="row-btn" title="Reset Password" onclick="openResetPasswordModal('${u._id}','${u.username}')" style="color:#2196f3;border-color:rgba(33,150,243,0.2);">
+                <i class="fa-solid fa-key"></i>
+              </button>
               <button class="row-btn" title="${isAdmin ? 'Demote to User' : 'Promote to Admin'}" onclick="toggleUserRole('${u._id}','${isAdmin ? 'user' : 'admin'}')" style="color:${roleColor};border-color:${roleBg};">
                 <i class="fa-solid ${isAdmin ? 'fa-user-minus' : 'fa-user-shield'}"></i>
               </button>
@@ -848,6 +878,36 @@
         loadUsers();
       } catch (err) { showToast(err.message, true); }
     };
+
+    // ── Reset Password Modal (Admin) ──
+    let resetTargetUserId = null;
+    window.openResetPasswordModal = function(id, username) {
+      resetTargetUserId = id;
+      document.getElementById('reset-pw-username').textContent = '@' + username;
+      document.getElementById('reset-pw-input').value = '';
+      document.getElementById('reset-pw-error').textContent = '';
+      document.getElementById('reset-pw-modal').classList.add('open');
+    };
+    document.getElementById('reset-pw-close').addEventListener('click', () => document.getElementById('reset-pw-modal').classList.remove('open'));
+    document.getElementById('reset-pw-cancel').addEventListener('click', () => document.getElementById('reset-pw-modal').classList.remove('open'));
+    document.getElementById('reset-pw-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPassword = document.getElementById('reset-pw-input').value.trim();
+      const errEl = document.getElementById('reset-pw-error');
+      errEl.textContent = '';
+      if (!newPassword || newPassword.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
+      try {
+        const res = await fetch(`/api/users/${resetTargetUserId}/password`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ newPassword })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to reset password');
+        document.getElementById('reset-pw-modal').classList.remove('open');
+        showToast('Password reset successfully');
+      } catch (err) { errEl.textContent = err.message; }
+    });
 
     function renderTable() {
       if (dbCars.length === 0) {

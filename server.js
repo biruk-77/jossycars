@@ -435,6 +435,45 @@ app.patch('/api/users/:id/role', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// Admin: reset any user's password
+app.patch('/api/users/:id/password', authenticateToken, async (req, res) => {
+  if (mongoose.connection.readyState !== 1) return res.status(503).json({ error: 'Database is offline.' });
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden: Admins only' });
+  const { newPassword } = req.body;
+  if (!newPassword || newPassword.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  try {
+    const hashed = await bcrypt.hash(newPassword, 10);
+    const user = await User.findByIdAndUpdate(req.params.id, { password: hashed }, { new: true });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// User: update own profile (name, phone, password)
+app.patch('/api/profile', authenticateToken, async (req, res) => {
+  if (mongoose.connection.readyState !== 1) return res.status(503).json({ error: 'Database is offline.' });
+  try {
+    const { name, phone, currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (name !== undefined) user.name = name.trim();
+    if (phone !== undefined) user.phone = phone.trim();
+
+    if (newPassword) {
+      if (!currentPassword) return res.status(400).json({ error: 'Current password is required to set a new one' });
+      const valid = await bcrypt.compare(currentPassword, user.password);
+      if (!valid) return res.status(400).json({ error: 'Current password is incorrect' });
+      if (newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
+      user.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    await user.save();
+    const token = jwt.sign({ id: user._id, username: user.username, role: user.role, name: user.name, phone: user.phone }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ message: 'Profile updated successfully', token, name: user.name, phone: user.phone });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ── Inquiries API ──
 app.post('/api/inquiries', async (req, res) => {
   if (mongoose.connection.readyState !== 1) {

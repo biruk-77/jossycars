@@ -51,18 +51,23 @@ function updateNavbarAuth() {
         <i class="fa-solid fa-circle-user"></i>
         <span>${username}</span>
       </div>
+      <button class="nav-logout-btn" id="nav-profile-action" style="background:rgba(212,175,55,0.12);color:#b8860b;border:1px solid rgba(212,175,55,0.3);margin-right:6px;">
+        <i class="fa-solid fa-pen-to-square" style="margin-right:4px;"></i>Profile
+      </button>
       <button class="nav-logout-btn" id="nav-logout-action">Logout</button>
     `;
-    // Attach listener to logout button
     document.getElementById('nav-logout-action')?.addEventListener('click', (e) => {
       e.preventDefault();
       logoutUser();
+    });
+    document.getElementById('nav-profile-action')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      openProfileModal();
     });
   } else {
     container.innerHTML = `
       <a href="#" class="nav-login-btn" id="nav-login-action">Login</a>
     `;
-    // Attach listener to login button
     document.getElementById('nav-login-action')?.addEventListener('click', (e) => {
       e.preventDefault();
       openAuthModal();
@@ -208,6 +213,32 @@ async function recordInquiry(car) {
   }
 }
 
+// ── Profile Modal ──
+function openProfileModal() {
+  const modal = document.getElementById('profile-modal');
+  if (!modal) return;
+  // Pre-fill with saved data
+  document.getElementById('prof-name').value = localStorage.getItem('rceth_name') || '';
+  document.getElementById('prof-phone').value = localStorage.getItem('rceth_phone') || '';
+  document.getElementById('prof-current-pw').value = '';
+  document.getElementById('prof-new-pw').value = '';
+  const msgEl = document.getElementById('profile-msg');
+  if (msgEl) { msgEl.style.display = 'none'; msgEl.textContent = ''; }
+  modal.style.display = 'flex';
+  requestAnimationFrame(() => {
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'auto';
+  });
+}
+
+function closeProfileModal() {
+  const modal = document.getElementById('profile-modal');
+  if (!modal) return;
+  modal.style.opacity = '0';
+  modal.style.pointerEvents = 'none';
+  setTimeout(() => { modal.style.display = 'none'; }, 300);
+}
+
 // Init when script loads
 document.addEventListener('DOMContentLoaded', () => {
   updateNavbarAuth();
@@ -238,4 +269,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Form submit
   document.getElementById('customer-auth-form')?.addEventListener('submit', handleAuthSubmit);
+
+  // Profile modal close
+  document.getElementById('profile-modal-close')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeProfileModal();
+  });
+  document.getElementById('profile-modal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('profile-modal')) closeProfileModal();
+  });
+
+  // Profile form submit
+  document.getElementById('profile-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msgEl = document.getElementById('profile-msg');
+    msgEl.style.display = 'none';
+    const name = document.getElementById('prof-name').value.trim();
+    const phone = document.getElementById('prof-phone').value.trim();
+    const currentPassword = document.getElementById('prof-current-pw').value;
+    const newPassword = document.getElementById('prof-new-pw').value;
+    const token = localStorage.getItem('rceth_token');
+
+    const body = { name, phone };
+    if (newPassword) {
+      body.currentPassword = currentPassword;
+      body.newPassword = newPassword;
+    }
+
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update profile');
+
+      // Persist updated token & info
+      localStorage.setItem('rceth_name', data.name || name);
+      localStorage.setItem('rceth_phone', data.phone || phone);
+      if (data.token) localStorage.setItem('rceth_token', data.token);
+
+      msgEl.style.cssText = 'display:block;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:16px;background:#e8f5e9;color:#2d6a2d;border:1px solid rgba(46,213,115,0.3);';
+      msgEl.textContent = 'Profile updated successfully!';
+      setTimeout(() => closeProfileModal(), 1500);
+    } catch (err) {
+      msgEl.style.cssText = 'display:block;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:16px;background:#fdecea;color:#b22222;border:1px solid rgba(178,34,34,0.2);';
+      msgEl.textContent = err.message;
+    }
+  });
 });

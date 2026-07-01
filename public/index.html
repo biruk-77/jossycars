@@ -373,6 +373,53 @@
     </div>
   </div>
 
+  <!-- Edit Profile Modal -->
+  <div class="customer-auth-overlay" id="profile-modal" style="display:none; opacity:0; pointer-events:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(6px); z-index:2000; align-items:center; justify-content:center;">
+    <div class="auth-modal-card" style="position:relative; max-width:440px; width:90%; background:#fff; border-radius:16px; padding:36px 32px; box-shadow:0 20px 60px rgba(0,0,0,0.18);">
+      <button class="auth-modal-close" id="profile-modal-close">&times;</button>
+      <div class="auth-modal-logo">
+        <img src="logo.jpg" alt="RC">
+        <span>REAL CARS <strong>ETH</strong></span>
+      </div>
+      <h2 style="font-size:20px;font-weight:900;margin:16px 0 4px;">Edit Profile</h2>
+      <p style="font-size:12px;color:#888;margin:0 0 20px;">Update your name, phone, or change your password.</p>
+      <div id="profile-msg" style="display:none;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:16px;"></div>
+      <form id="profile-form" style="display:flex;flex-direction:column;gap:14px;">
+        <div class="form-group">
+          <label for="prof-name">Full Name</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-user-tag"></i>
+            <input type="text" id="prof-name" placeholder="Your full name">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="prof-phone">Phone Number</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-phone"></i>
+            <input type="tel" id="prof-phone" placeholder="e.g. +251911223344">
+          </div>
+        </div>
+        <hr style="border:none;border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#aaa;margin:0;">Change Password (optional)</p>
+        <div class="form-group">
+          <label for="prof-current-pw">Current Password</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="prof-current-pw" placeholder="Enter current password">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="prof-new-pw">New Password</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-key"></i>
+            <input type="password" id="prof-new-pw" placeholder="Min. 6 characters">
+          </div>
+        </div>
+        <button type="submit" class="auth-modal-submit" style="margin-top:4px;">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
