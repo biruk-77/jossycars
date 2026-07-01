@@ -11,7 +11,7 @@ const TRANSLATIONS = {
     
     // Hero Overlay
     "hero-premium-label": "የቅንጦት መኪናዎች · ኢትዮጵያ",
-    "hero-title-main": "የኢትዮጵያ ምርጥ መኪና አቅራቢ",
+    "hero-title-main": "የኢትዮጵያ<br>ምርጥ<br><em>መኪና አከፋፋይ</em>",
     "hero-sub-text": "ምርጥ መኪናዎች። የታመኑ ዝርዝሮች። ግልጽ ዋጋ።",
     "hero-btn-browse": "መኪናዎችን ይመልከቱ",
     "hero-btn-contact": "ያግኙን",
@@ -86,7 +86,7 @@ const TRANSLATIONS = {
     
     // Hero Overlay
     "hero-premium-label": "PREMIUM AUTO · ETHIOPIA",
-    "hero-title-main": "Ethiopia's Finest Dealership.",
+    "hero-title-main": "Ethiopia's<br>Finest<br><em>Dealership.</em>",
     "hero-sub-text": "Hand-picked imports. Verified listings. Transparent pricing.",
     "hero-btn-browse": "Browse Inventory",
     "hero-btn-contact": "Contact Us",
@@ -164,8 +164,7 @@ function applyTranslations() {
       if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
         el.setAttribute("placeholder", text);
       } else if (el.tagName === "SELECT") {
-        // If it's a select element, we don't directly change its value, but we might translate its options.
-        // Usually, we attribute data-i18n to individual option elements.
+        // If it's a select element
       } else {
         // Keep icons inside elements if any
         const icon = el.querySelector("i");
@@ -175,6 +174,9 @@ function applyTranslations() {
             if (node !== icon) el.removeChild(node);
           });
           el.appendChild(document.createTextNode(" " + text));
+        } else if (key === "hero-title-main" || text.includes("<")) {
+          // Preserve tags like <br> and <em>
+          el.innerHTML = text;
         } else {
           el.textContent = text;
         }

@@ -250,9 +250,12 @@ button, select, input { font-family: 'Outfit', sans-serif; }
   font-weight: 900;
   line-height: 0.88;
   letter-spacing: -3px;
-  color: var(--text);
+  color: var(--gold); /* Main text color in luxury yellow-gold */
   padding-left: 22px;
-  text-shadow: 0 0 60px rgba(0, 0, 0, 0.03);
+  -webkit-text-stroke: 1.5px #000000; /* Distinct black outline */
+  text-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.4),
+    0 3px 6px rgba(0, 0, 0, 0.35); /* Black blurry shadow behind the text */
 }
 .hero-title em {
   font-style: normal;
@@ -260,6 +263,7 @@ button, select, input { font-family: 'Outfit', sans-serif; }
   background: linear-gradient(135deg, var(--gold) 20%, var(--accent) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1.5px #000000; /* Outline also applies to the gradient text */
 }
 
 .hero-sub {
