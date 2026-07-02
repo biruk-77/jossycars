@@ -538,6 +538,9 @@ app.get('/api/cars', async (req, res) => {
     }
 
     let cars = await Car.find().sort({ date: -1 });
+    // If real cars exist, drop mocks — they were saved as fallback when Telegram was unreachable
+    const realCars = cars.filter(c => !c.isMock);
+    if (realCars.length > 0) cars = realCars;
     if (cars.length === 0) {
       console.log("No cars in database, seeding from Telegram...");
       const channel = req.query.channel || 'jossycarmar';
