@@ -101,63 +101,6 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// High-quality mock car data representing typical cars for sale in Ethiopia (used as fallback or for a polished demo)
-function hoursAgo(h) {
-  return new Date(Date.now() - h * 3600000).toISOString();
-}
-
-const MOCK_CARS = [
-  {
-    id: "mock-1",
-    title: "Toyota Hilux Double Cabin 2022",
-    price: "8,200,000 ETB",
-    details: "Transmission: Automatic\nFuel: Diesel\nEngine: 2.8L GD-6\nCondition: Excellent (Plate No. B33...)\nContact: 0911XXXXXX",
-    photos: ["https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800"],
-    date: hoursAgo(2),
-    isMock: true,
-    link: "#"
-  },
-  {
-    id: "mock-2",
-    title: "Suzuki Dzire 2021",
-    price: "1,950,000 ETB",
-    details: "Transmission: Manual\nFuel: Benzene\nEngine: 1.2L\nKilometers: 18,000 km\nCondition: Very Clean, Euro Spec",
-    photos: ["https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=800"],
-    date: hoursAgo(18),
-    isMock: true,
-    link: "#"
-  },
-  {
-    id: "mock-3",
-    title: "Toyota Vitz (Yaris) 2015",
-    price: "1,650,000 ETB",
-    details: "Transmission: Automatic\nFuel: Benzene\nEngine: 1.3L\nCondition: Local Used, No Accident",
-    photos: ["https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800"],
-    date: hoursAgo(48),
-    isMock: true,
-    link: "#"
-  },
-  {
-    id: "mock-4",
-    title: "Hyundai Tucson 2020",
-    price: "5,400,000 ETB",
-    details: "Transmission: Automatic\nFuel: Benzene\nEngine: 2.0L\nCondition: Clean title, imported directly from Dubai",
-    photos: ["https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800"],
-    date: hoursAgo(72),
-    isMock: true,
-    link: "#"
-  },
-  {
-    id: "mock-5",
-    title: "Toyota Corolla (Core) 2018",
-    price: "3,800,000 ETB",
-    details: "Transmission: Automatic\nFuel: Benzene\nEngine: 1.8L\nCondition: Code 2 Plate, Very Neat Interior",
-    photos: ["https://images.unsplash.com/photo-1623869675781-80aa311b2a78?auto=format&fit=crop&q=80&w=800"],
-    date: hoursAgo(96),
-    isMock: true,
-    link: "#"
-  }
-];
 
 // Parser function to structure plain text from Telegram into a cleaner listing
 function parseListing(text) {
@@ -300,13 +243,13 @@ async function scrapeTelegramListings(channel = 'jossycarmar', limit = 50) {
       pages++;
     }
 
-    if (allPosts.length === 0) return MOCK_CARS;
+    if (allPosts.length === 0) return [];
 
     const withPhotos = allPosts.filter(p => p.photos?.[0] && !p.photos[0].includes('unsplash'));
     return (withPhotos.length >= 5 ? withPhotos : allPosts).slice(0, limit);
   } catch (error) {
     console.error(`Scrape error:`, error.message);
-    return MOCK_CARS;
+    return [];
   }
 }
 
@@ -527,52 +470,45 @@ app.delete('/api/inquiries/:id', authenticateToken, async (req, res) => {
 });
 
 // ── Cars API ──
-// ── Cars API ──
 app.get('/api/cars', async (req, res) => {
+  const channel = req.query.channel || 'jossycarmar';
   try {
-    if (mongoose.connection.readyState !== 1) {
-      console.warn("MongoDB is offline/buffering. Serving directly from Telegram scrape...");
-      const channel = req.query.channel || 'jossycarmar';
-      const scraped = await scrapeTelegramListings(channel, 50);
-      return res.json(scraped);
+    // 1. Try Telegram first — freshest data, respond immediately
+    const scraped = await scrapeTelegramListings(channel, 50);
+    if (scraped.length > 0) {
+      res.json(scraped);
+      // Save to MongoDB in background — don't block the response
+      if (mongoose.connection.readyState === 1) {
+        const seen = new Set();
+        for (const item of scraped) {
+          if (seen.has(item.id)) continue;
+          seen.add(item.id);
+          Car.findOneAndUpdate({ id: item.id }, item, { upsert: true, setDefaultsOnInsert: true })
+            .catch(e => console.error('BG save:', e.message));
+        }
+        // Clean any old mocks from DB
+        Car.deleteMany({ isMock: true }).catch(() => {});
+      }
+      return;
     }
 
-    let cars = await Car.find().sort({ date: -1 });
-    // If real cars exist, drop mocks — they were saved as fallback when Telegram was unreachable
-    const realCars = cars.filter(c => !c.isMock);
-    if (realCars.length > 0) cars = realCars;
-    if (cars.length === 0) {
-      console.log("No cars in database, seeding from Telegram...");
-      const channel = req.query.channel || 'jossycarmar';
-      const scraped = await scrapeTelegramListings(channel, 50);
-      
-      // Clean duplicate IDs in the scraped set itself (if any)
-      const seen = new Set();
-      const uniqueScraped = [];
-      for (const item of scraped) {
-        if (!seen.has(item.id)) {
-          seen.add(item.id);
-          uniqueScraped.push(item);
-        }
-      }
-      
-      try {
-        await Car.insertMany(uniqueScraped);
-      } catch (dbErr) {
-        console.error("Failed to seed scraped cars into DB:", dbErr.message);
-      }
-      cars = await Car.find().sort({ date: -1 });
+    // 2. Telegram returned nothing (blocked on this server) — fall back to MongoDB
+    if (mongoose.connection.readyState === 1) {
+      const cars = await Car.find({ isMock: { $ne: true } }).sort({ date: -1 });
+      return res.json(cars);
     }
-    res.json(cars);
+
+    res.json([]);
   } catch (err) {
-    console.error('Error fetching cars, falling back to scraped listings:', err);
-    try {
-      const channel = req.query.channel || 'jossycarmar';
-      const scraped = await scrapeTelegramListings(channel, 50);
-      res.json(scraped);
-    } catch (fallbackErr) {
-      res.json(MOCK_CARS);
+    console.error('Cars fetch error:', err.message);
+    // Last resort: try MongoDB
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const cars = await Car.find({ isMock: { $ne: true } }).sort({ date: -1 });
+        return res.json(cars);
+      } catch (_) {}
     }
+    res.json([]);
   }
 });
 
