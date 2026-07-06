@@ -1,91 +1,48 @@
+require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const cors = require('cors');
 const path = require('path');
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
+const rateLimit = require('express-rate-limit');
+
+// Import the SQLite database wrapper
+const { db } = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Enable CORS and body parsing
 app.use(cors());
-app.use(express.json({ limit: '10mb' })); // support json encoded bodies
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://whatsrye_db_user:tDahYFzP6xbWRUin@cluster0.vyv2ezx.mongodb.net/realcars?retryWrites=true&w=majority&appName=Cluster0';
-
-mongoose.set('bufferCommands', false);
-
-mongoose.connect(MONGODB_URI, {
-  serverSelectionTimeoutMS: 4000
-})
-  .then(() => {
-    console.log('Successfully connected to MongoDB Atlas.');
-    seedAdmin();
-  })
-  .catch(err => {
-    console.error('MongoDB connection error (Offline/Fallback mode):', err.message);
-    console.error('Reason: IP may not be whitelisted in MongoDB Atlas or database is unreachable.');
-  });
-
-// Database schemas
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  name: { type: String, default: "" },
-  phone: { type: String, default: "" },
-  role: { type: String, default: "user" }
+// ── Rate Limiting (Security) ──
+// General API Rate Limiter
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 150, // Limit each IP to 150 requests per windowMs
+  message: { error: 'Too many requests from this IP, please try again after 15 minutes.' },
+  standardHeaders: true, 
+  legacyHeaders: false,
 });
-const User = mongoose.model('User', userSchema);
 
-const inquirySchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  phone: { type: String, required: true },
-  carId: { type: String, required: true },
-  carTitle: { type: String, required: true },
-  carPrice: { type: String, default: "" },
-  date: { type: Date, default: Date.now }
+// Stricter Rate Limiter for Login/Signup/Auth changes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Limit each IP to 20 auth requests per windowMs
+  message: { error: 'Too many login/auth requests from this IP, please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
-const Inquiry = mongoose.model('Inquiry', inquirySchema);
 
-async function seedAdmin() {
-  try {
-    const adminUsername = 'admin';
-    const adminPassword = 'adminpassword2026';
-    const existing = await User.findOne({ username: adminUsername });
-    if (!existing) {
-      const hashedPassword = await bcrypt.hash(adminPassword, 10);
-      const admin = new User({
-        username: adminUsername,
-        password: hashedPassword,
-        name: 'System Admin',
-        phone: '+251911000000',
-        role: 'admin'
-      });
-      await admin.save();
-      console.log('Seeded default admin user: admin / adminpassword2026');
-    }
-  } catch (err) {
-    console.error('Error seeding admin user:', err);
-  }
-}
+// Apply general API rate limiter to all API routes
+app.use('/api/', apiLimiter);
 
-const carSchema = new mongoose.Schema({
-  id: { type: String, unique: true },
-  title: { type: String, required: true },
-  price: { type: String, required: true },
-  details: { type: String, default: "" },
-  photos: { type: [String], default: [] },
-  date: { type: Date, default: Date.now },
-  link: { type: String, default: "#" },
-  isMock: { type: Boolean, default: false }
-});
-const Car = mongoose.model('Car', carSchema);
-
+// JWT Secret Key
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-realcars-eth-2026';
 
 // Middleware for JWT authentication
@@ -101,15 +58,13 @@ function authenticateToken(req, res, next) {
   });
 }
 
-
-// Parser function to structure plain text from Telegram into a cleaner listing
+// Helper parser for Telegram Listings
 function parseListing(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   let title = "Toyota / Suzuki Car for Sale";
   let price = "Contact for Price";
   let detailsList = [];
 
-  // Try to find the title (often the first line)
   if (lines.length > 0) {
     title = lines[0].replace(/[🔥🔴❇️❇️✅🚗🚙🚘🚖]/g, '').trim();
     if (title.length > 50) {
@@ -117,7 +72,6 @@ function parseListing(text) {
     }
   }
 
-  // Look for price patterns
   const priceRegex = /(?:price|ዋጋ|birr|etb|br)\s*:?\s*([\d,.\s]+(?:million|ሺ|sh|mill|mil|million|br|etb)?)/i;
   const amharicPriceRegex = /([\d,.\s]+(?:ሚሊዮን|ሺህ)?\s*(?:ብር|etb))/i;
 
@@ -129,9 +83,7 @@ function parseListing(text) {
     }
   }
 
-  // Clean details
   detailsList = lines.slice(1).filter(line => {
-    // Exclude contact links or long promotional spam lines
     return !line.toLowerCase().includes('http') && !line.includes('@');
   });
 
@@ -142,7 +94,6 @@ function parseListing(text) {
   };
 }
 
-// ── Helpers ────────────────────────────────────────────────
 const HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -151,9 +102,6 @@ const HEADERS = {
   'Cache-Control': 'no-cache',
   'Pragma': 'no-cache',
   'Referer': 'https://t.me/',
-  'sec-fetch-dest': 'document',
-  'sec-fetch-mode': 'navigate',
-  'sec-fetch-site': 'same-origin',
 };
 
 async function fetchWithRetry(url, retries = 3) {
@@ -187,27 +135,26 @@ function extractPosts($, allPosts, channel) {
     if (!postText && photos.length === 0) return;
 
     const postId = $(element).find('.tgme_widget_message').attr('data-post') || `tg-${index}`;
-    if (allPosts.some(p => p.id === postId)) return; // deduplicate
+    if (allPosts.some(p => p.id === postId)) return;
 
     const parsed = parseListing(postText);
 
     allPosts.push({
       id: postId,
-      title:   parsed.title,
-      price:   parsed.price,
+      title: parsed.title,
+      price: parsed.price,
       details: parsed.details || postText,
-      photos:  photos.length > 0 ? photos : ['https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800'],
-      date:    $(element).find('time[datetime]').attr('datetime') ||
-               $(element).find('.tgme_widget_message_date time').attr('datetime') ||
-               $(element).find('.time').attr('datetime') ||
-               $(element).find('.time').text().trim() || 'Recently',
-      link:    $(element).find('.tgme_widget_message_date').attr('href') || `https://t.me/${channel}`,
-      isMock:  false,
+      photos: photos.length > 0 ? photos : ['https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800'],
+      date: $(element).find('time[datetime]').attr('datetime') ||
+            $(element).find('.tgme_widget_message_date time').attr('datetime') ||
+            $(element).find('.time').attr('datetime') ||
+            $(element).find('.time').text().trim() || 'Recently',
+      link: $(element).find('.tgme_widget_message_date').attr('href') || `https://t.me/${channel}`,
+      isMock: false,
     });
   });
 }
 
-// ── Scrape helper function ──
 async function scrapeTelegramListings(channel = 'jossycarmar', limit = 50) {
   try {
     const allPosts = [];
@@ -254,64 +201,69 @@ async function scrapeTelegramListings(channel = 'jossycarmar', limit = 50) {
 }
 
 // ── Auth API ──
-app.post('/api/auth/signup', async (req, res) => {
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ error: 'Database is offline. Please make sure your current IP address is whitelisted on your MongoDB Atlas cluster.' });
-  }
+app.post('/api/auth/signup', authLimiter, async (req, res) => {
   try {
     const { username, password, name, phone } = req.body;
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password required' });
     }
-    const existing = await User.findOne({ username });
+
+    // SAFE: Parameterized SELECT query to check for existing username (prevents SQL injection)
+    const existing = await db.get('SELECT * FROM users WHERE username = ?', [username]);
     if (existing) {
       return res.status(400).json({ error: 'Username already exists' });
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({
-      username,
-      password: hashedPassword,
-      name: name || '',
-      phone: phone || '',
-      role: 'user'
-    });
-    await user.save();
-    const token = jwt.sign({ id: user._id, username: user.username, role: user.role, name: user.name, phone: user.phone }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ message: 'Signup successful', token, username: user.username, role: user.role, name: user.name, phone: user.phone });
+    const userId = `u_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+    // SAFE: Parameterized INSERT query
+    await db.run(
+      'INSERT INTO users (id, username, password, name, phone, role) VALUES (?, ?, ?, ?, ?, ?)',
+      [userId, username, hashedPassword, name || '', phone || '', 'user']
+    );
+
+    const token = jwt.sign({ id: userId, username, role: 'user', name: name || '', phone: phone || '' }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ message: 'Signup successful', token, username, role: 'user', name: name || '', phone: phone || '' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ error: 'Database is offline. Please make sure your current IP address is whitelisted on your MongoDB Atlas cluster.' });
-  }
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password required' });
     }
-    const user = await User.findOne({ username });
+
+    // SAFE: Parameterized SELECT query (prevents SQL injection)
+    const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
     if (!user) {
       return res.status(400).json({ error: 'Invalid username or password' });
     }
+
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return res.status(400).json({ error: 'Invalid username or password' });
     }
-    const token = jwt.sign({ id: user._id, username: user.username, role: user.role, name: user.name || '', phone: user.phone || '' }, JWT_SECRET, { expiresIn: '7d' });
+
+    const token = jwt.sign({ id: user.id, username: user.username, role: user.role, name: user.name || '', phone: user.phone || '' }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ message: 'Login successful', token, username: user.username, role: user.role, name: user.name || '', phone: user.phone || '' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/auth/me', authenticateToken, (req, res) => {
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ error: 'Database is offline.' });
+app.get('/api/auth/me', authenticateToken, async (req, res) => {
+  try {
+    // SAFE: Parameterized SELECT query
+    const user = await db.get('SELECT username, role, name, phone FROM users WHERE id = ?', [req.user.id]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  res.json({ username: req.user.username, role: req.user.role, name: req.user.name || '', phone: req.user.phone || '' });
 });
 
 // ── File Upload API (Base64) ──
@@ -347,103 +299,108 @@ app.post('/api/upload', authenticateToken, (req, res) => {
 
 // ── Users Management API ──
 app.get('/api/users', authenticateToken, async (req, res) => {
-  if (mongoose.connection.readyState !== 1) return res.status(503).json({ error: 'Database is offline.' });
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden: Admins only' });
   try {
-    const users = await User.find({}, { password: 0 }).sort({ _id: -1 });
+    // SAFE: Parameterized query
+    const users = await db.all('SELECT id, username, name, phone, role FROM users ORDER BY id DESC');
     res.json(users);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.delete('/api/users/:id', authenticateToken, async (req, res) => {
-  if (mongoose.connection.readyState !== 1) return res.status(503).json({ error: 'Database is offline.' });
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden: Admins only' });
   if (req.params.id === req.user.id) return res.status(400).json({ error: 'Cannot delete your own account' });
   try {
-    const result = await User.deleteOne({ _id: req.params.id });
-    if (result.deletedCount === 0) return res.status(404).json({ error: 'User not found' });
+    // SAFE: Parameterized query
+    const result = await db.run('DELETE FROM users WHERE id = ?', [req.params.id]);
+    if (result.changes === 0) return res.status(404).json({ error: 'User not found' });
     res.json({ message: 'User deleted successfully' });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.patch('/api/users/:id/role', authenticateToken, async (req, res) => {
-  if (mongoose.connection.readyState !== 1) return res.status(503).json({ error: 'Database is offline.' });
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden: Admins only' });
   const { role } = req.body;
   if (!['admin', 'user'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true, select: '-password' });
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json({ message: 'Role updated', user });
+    // SAFE: Parameterized query
+    const result = await db.run('UPDATE users SET role = ? WHERE id = ?', [role, req.params.id]);
+    if (result.changes === 0) return res.status(404).json({ error: 'User not found' });
+    res.json({ message: 'Role updated successfully' });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Admin: reset any user's password
 app.patch('/api/users/:id/password', authenticateToken, async (req, res) => {
-  if (mongoose.connection.readyState !== 1) return res.status(503).json({ error: 'Database is offline.' });
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden: Admins only' });
   const { newPassword } = req.body;
   if (!newPassword || newPassword.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
   try {
     const hashed = await bcrypt.hash(newPassword, 10);
-    const user = await User.findByIdAndUpdate(req.params.id, { password: hashed }, { new: true });
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    // SAFE: Parameterized query
+    const result = await db.run('UPDATE users SET password = ? WHERE id = ?', [hashed, req.params.id]);
+    if (result.changes === 0) return res.status(404).json({ error: 'User not found' });
     res.json({ message: 'Password updated successfully' });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// User: update own profile (name, phone, password)
-app.patch('/api/profile', authenticateToken, async (req, res) => {
-  if (mongoose.connection.readyState !== 1) return res.status(503).json({ error: 'Database is offline.' });
+app.patch('/api/profile', authenticateToken, authLimiter, async (req, res) => {
   try {
     const { name, phone, currentPassword, newPassword } = req.body;
-    const user = await User.findById(req.user.id);
+    // SAFE: Parameterized query
+    const user = await db.get('SELECT * FROM users WHERE id = ?', [req.user.id]);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    if (name !== undefined) user.name = name.trim();
-    if (phone !== undefined) user.phone = phone.trim();
+    let updatedName = name !== undefined ? name.trim() : user.name;
+    let updatedPhone = phone !== undefined ? phone.trim() : user.phone;
+    let hashedPassword = user.password;
 
     if (newPassword) {
       if (!currentPassword) return res.status(400).json({ error: 'Current password is required to set a new one' });
       const valid = await bcrypt.compare(currentPassword, user.password);
       if (!valid) return res.status(400).json({ error: 'Current password is incorrect' });
       if (newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
-      user.password = await bcrypt.hash(newPassword, 10);
+      hashedPassword = await bcrypt.hash(newPassword, 10);
     }
 
-    await user.save();
-    const token = jwt.sign({ id: user._id, username: user.username, role: user.role, name: user.name, phone: user.phone }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ message: 'Profile updated successfully', token, name: user.name, phone: user.phone });
+    // SAFE: Parameterized query
+    await db.run(
+      'UPDATE users SET name = ?, phone = ?, password = ? WHERE id = ?',
+      [updatedName, updatedPhone, hashedPassword, req.user.id]
+    );
+
+    const token = jwt.sign({ id: user.id, username: user.username, role: user.role, name: updatedName, phone: updatedPhone }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ message: 'Profile updated successfully', token, name: updatedName, phone: updatedPhone });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ── Inquiries API ──
 app.post('/api/inquiries', async (req, res) => {
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ error: 'Database is offline. Unable to send inquiry.' });
-  }
   try {
     const { name, phone, carId, carTitle, carPrice } = req.body;
     if (!name || !phone || !carId || !carTitle) {
       return res.status(400).json({ error: 'Missing required inquiry fields' });
     }
-    const inquiry = new Inquiry({ name, phone, carId, carTitle, carPrice });
-    await inquiry.save();
-    res.status(201).json({ message: 'Lead saved successfully', inquiry });
+    const id = `inq_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+    // SAFE: Parameterized query
+    await db.run(
+      'INSERT INTO inquiries (id, name, phone, carId, carTitle, carPrice) VALUES (?, ?, ?, ?, ?, ?)',
+      [id, name, phone, carId, carTitle, carPrice || '']
+    );
+
+    res.status(201).json({ message: 'Lead saved successfully', inquiry: { id, name, phone, carId, carTitle, carPrice } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.get('/api/inquiries', authenticateToken, async (req, res) => {
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ error: 'Database is offline.' });
-  }
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden: Admins only' });
     }
-    const inquiries = await Inquiry.find().sort({ date: -1 });
+    // SAFE: Parameterized query
+    const inquiries = await db.all('SELECT * FROM inquiries ORDER BY date DESC');
     res.json(inquiries);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -451,16 +408,13 @@ app.get('/api/inquiries', authenticateToken, async (req, res) => {
 });
 
 app.delete('/api/inquiries/:id', authenticateToken, async (req, res) => {
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ error: 'Database is offline.' });
-  }
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Forbidden: Admins only' });
     }
-    const { id } = req.params;
-    const result = await Inquiry.deleteOne({ _id: id });
-    if (result.deletedCount === 0) {
+    // SAFE: Parameterized query
+    const result = await db.run('DELETE FROM inquiries WHERE id = ?', [req.params.id]);
+    if (result.changes === 0) {
       return res.status(404).json({ error: 'Inquiry not found' });
     }
     res.json({ message: 'Inquiry deleted successfully' });
@@ -473,59 +427,72 @@ app.delete('/api/inquiries/:id', authenticateToken, async (req, res) => {
 app.get('/api/cars', async (req, res) => {
   const channel = req.query.channel || 'jossycarmar';
   try {
-    // 1. Try Telegram first — freshest data, respond immediately
+    // 1. Try Telegram scraping first
     const scraped = await scrapeTelegramListings(channel, 50);
     if (scraped.length > 0) {
       res.json(scraped);
-      // Save to MongoDB in background — don't block the response
-      if (mongoose.connection.readyState === 1) {
-        const seen = new Set();
-        for (const item of scraped) {
-          if (seen.has(item.id)) continue;
-          seen.add(item.id);
-          Car.findOneAndUpdate({ id: item.id }, item, { upsert: true, setDefaultsOnInsert: true })
-            .catch(e => console.error('BG save:', e.message));
-        }
-        // Clean any old mocks from DB
-        Car.deleteMany({ isMock: true }).catch(() => {});
+
+      // Save/update scraped posts to SQL in the background
+      for (const item of scraped) {
+        // SAFE: Parameterized queries used throughout
+        db.run(
+          `INSERT INTO cars (id, title, price, details, photos, link, isMock) 
+           VALUES (?, ?, ?, ?, ?, ?, 0) 
+           ON CONFLICT(id) DO UPDATE SET 
+             title = excluded.title, 
+             price = excluded.price, 
+             details = excluded.details, 
+             photos = excluded.photos, 
+             link = excluded.link`,
+          [item.id, item.title, item.price, item.details, JSON.stringify(item.photos), item.link]
+        ).catch(e => console.error('BG Save SQLite Error:', e.message));
       }
+      
+      // Delete any mock listings in the database
+      db.run('DELETE FROM cars WHERE isMock = 1').catch(() => {});
       return;
     }
 
-    // 2. Telegram returned nothing (blocked on this server) — fall back to MongoDB
-    if (mongoose.connection.readyState === 1) {
-      const cars = await Car.find({ isMock: { $ne: true } }).sort({ date: -1 });
-      return res.json(cars);
-    }
-
-    res.json([]);
+    // 2. Scraper failed or returned nothing — fall back to local SQLite database
+    const cars = await db.all('SELECT * FROM cars WHERE isMock = 0 ORDER BY date DESC');
+    const parsedCars = cars.map(car => ({
+      ...car,
+      photos: JSON.parse(car.photos || '[]'),
+      isMock: car.isMock === 1
+    }));
+    res.json(parsedCars);
   } catch (err) {
     console.error('Cars fetch error:', err.message);
-    // Last resort: try MongoDB
-    if (mongoose.connection.readyState === 1) {
-      try {
-        const cars = await Car.find({ isMock: { $ne: true } }).sort({ date: -1 });
-        return res.json(cars);
-      } catch (_) {}
+    try {
+      const cars = await db.all('SELECT * FROM cars WHERE isMock = 0 ORDER BY date DESC');
+      const parsedCars = cars.map(car => ({
+        ...car,
+        photos: JSON.parse(car.photos || '[]'),
+        isMock: car.isMock === 1
+      }));
+      res.json(parsedCars);
+    } catch (_) {
+      res.json([]);
     }
-    res.json([]);
   }
 });
 
 app.post('/api/cars/sync', authenticateToken, async (req, res) => {
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ error: 'Database is offline. Unable to sync.' });
-  }
   try {
     const channel = req.body.channel || 'jossycarmar';
     console.log(`Sync requested for channel: ${channel}`);
     const scraped = await scrapeTelegramListings(channel, 50);
     let addedCount = 0;
+    
     for (const item of scraped) {
-      const existing = await Car.findOne({ id: item.id });
+      // SAFE: Parameterized query to check if listing already exists
+      const existing = await db.get('SELECT 1 FROM cars WHERE id = ?', [item.id]);
       if (!existing) {
-        const car = new Car(item);
-        await car.save();
+        // SAFE: Parameterized insert query
+        await db.run(
+          'INSERT INTO cars (id, title, price, details, photos, link, isMock) VALUES (?, ?, ?, ?, ?, ?, 0)',
+          [item.id, item.title, item.price, item.details, JSON.stringify(item.photos), item.link]
+        );
         addedCount++;
       }
     }
@@ -536,61 +503,77 @@ app.post('/api/cars/sync', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/cars', authenticateToken, async (req, res) => {
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ error: 'Database is offline. Unable to add listing.' });
-  }
   try {
     const { title, price, details, photos, link } = req.body;
     if (!title || !price) {
       return res.status(400).json({ error: 'Title and price are required' });
     }
-    const car = new Car({
+    const newId = `car_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const photosStr = JSON.stringify(photos || ['https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800']);
+
+    // SAFE: Parameterized query
+    await db.run(
+      'INSERT INTO cars (id, title, price, details, photos, link, isMock) VALUES (?, ?, ?, ?, ?, ?, 0)',
+      [newId, title, price, details || '', photosStr, link || '#']
+    );
+
+    res.status(201).json({
+      id: newId,
       title,
       price,
       details: details || '',
       photos: photos || ['https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800'],
       link: link || '#',
-      date: new Date()
+      isMock: false
     });
-    car.id = car._id.toString();
-    await car.save();
-    res.status(201).json(car);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.put('/api/cars/:id', authenticateToken, async (req, res) => {
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ error: 'Database is offline. Unable to edit listing.' });
-  }
   try {
     const { id } = req.params;
     const { title, price, details, photos, link } = req.body;
-    const car = await Car.findOne({ id });
+
+    // SAFE: Parameterized query to check if listing exists
+    const car = await db.get('SELECT * FROM cars WHERE id = ?', [id]);
     if (!car) {
       return res.status(404).json({ error: 'Car listing not found' });
     }
-    if (title) car.title = title;
-    if (price) car.price = price;
-    if (details !== undefined) car.details = details;
-    if (photos) car.photos = photos;
-    if (link) car.link = link;
-    await car.save();
-    res.json(car);
+
+    const updatedTitle = title || car.title;
+    const updatedPrice = price || car.price;
+    const updatedDetails = details !== undefined ? details : car.details;
+    const updatedPhotos = photos ? JSON.stringify(photos) : car.photos;
+    const updatedLink = link || car.link;
+
+    // SAFE: Parameterized query to update listing
+    await db.run(
+      'UPDATE cars SET title = ?, price = ?, details = ?, photos = ?, link = ? WHERE id = ?',
+      [updatedTitle, updatedPrice, updatedDetails, updatedPhotos, updatedLink, id]
+    );
+
+    res.json({
+      id,
+      title: updatedTitle,
+      price: updatedPrice,
+      details: updatedDetails,
+      photos: photos || JSON.parse(updatedPhotos),
+      link: updatedLink,
+      isMock: car.isMock === 1
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.delete('/api/cars/:id', authenticateToken, async (req, res) => {
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ error: 'Database is offline. Unable to delete listing.' });
-  }
   try {
     const { id } = req.params;
-    const result = await Car.deleteOne({ id });
-    if (result.deletedCount === 0) {
+    // SAFE: Parameterized query to delete listing
+    const result = await db.run('DELETE FROM cars WHERE id = ?', [id]);
+    if (result.changes === 0) {
       return res.status(404).json({ error: 'Car listing not found' });
     }
     res.json({ message: 'Car listing deleted successfully' });
@@ -600,7 +583,6 @@ app.delete('/api/cars/:id', authenticateToken, async (req, res) => {
 });
 
 // ── TikTok video IDs ───────────────────────────────────────
-// Paste full TikTok video URLs here — just replace the placeholders
 const TIKTOK_VIDEO_IDS = [
   '7648654778792152321',
   '7653476960747752720',
@@ -612,14 +594,11 @@ app.get('/api/tiktok', (_req, res) => {
   res.json(TIKTOK_VIDEO_IDS);
 });
 
-// ── 3D Model proxy ─────────────────────────────────────────
-// If user drops their own car.glb in /public, Express static serves it.
-// If not, this route fetches the Ferrari demo model and streams it.
-
+// ── 3D Model Proxy ──
 app.get('/car.glb', async (_req, res) => {
   const local = path.join(__dirname, 'public', 'car.glb');
   if (fs.existsSync(local)) {
-    return res.sendFile(local); // serve the user's own model
+    return res.sendFile(local);
   }
   try {
     const modelUrl = 'https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/models/gltf/ferrari.glb';
@@ -639,6 +618,20 @@ app.get('/car.glb', async (_req, res) => {
     res.status(502).send('Could not fetch 3D model');
   }
 });
+
+// Serve frontend assets if Vite build exists
+const frontendDistPath = path.join(__dirname, 'frontend', 'dist');
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+  app.get('*', (req, res, next) => {
+    // If it is an API route, pass to other routers
+    if (req.path.startsWith('/api/')) return next();
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+} else {
+  // Fall back to old public folder if React app is not compiled yet
+  app.use(express.static(path.join(__dirname, 'public')));
+}
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

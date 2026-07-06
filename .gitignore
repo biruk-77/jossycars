@@ -4,3 +4,14 @@ node_modules/
 *.log
 .gemini/
 .claude/
+cars.db
+scratch/
+photo_2026-01-16_08-02-40.jpg
+C*
+C\357\200\272*
+*.json
+!package.json
+!package-lock.json
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/.oxlintrc.json

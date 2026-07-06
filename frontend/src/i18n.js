@@ -1,4 +1,4 @@
-const TRANSLATIONS = {
+export const TRANSLATIONS = {
   am: {
     // Navigation
     "nav-home": "መነሻ",
@@ -11,7 +11,7 @@ const TRANSLATIONS = {
     
     // Hero Overlay
     "hero-premium-label": "የቅንጦት መኪናዎች · ኢትዮጵያ",
-    "hero-title-main": "የኢትዮጵያ<br>ምርጥ<br><em>መኪና አከፋፋይ</em>",
+    "hero-title-main": "የኢትዮጵያ ምርጥ መኪና አከፋፋይ",
     "hero-sub-text": "ምርጥ መኪናዎች። የታመኑ ዝርዝሮች። ግልጽ ዋጋ።",
     "hero-btn-browse": "መኪናዎችን ይመልከቱ",
     "hero-btn-contact": "ያግኙን",
@@ -86,7 +86,7 @@ const TRANSLATIONS = {
     
     // Hero Overlay
     "hero-premium-label": "PREMIUM AUTO · ETHIOPIA",
-    "hero-title-main": "Ethiopia's<br>Finest<br><em>Dealership.</em>",
+    "hero-title-main": "Ethiopia's Finest Dealership",
     "hero-sub-text": "Hand-picked imports. Verified listings. Transparent pricing.",
     "hero-btn-browse": "Browse Inventory",
     "hero-btn-contact": "Contact Us",
@@ -150,66 +150,3 @@ const TRANSLATIONS = {
     "detail-btn-call": "Call Now"
   }
 };
-
-let currentLang = localStorage.getItem("rceth_lang") || "am";
-
-function applyTranslations() {
-  const elements = document.querySelectorAll("[data-i18n]");
-  elements.forEach(el => {
-    const key = el.getAttribute("data-i18n");
-    if (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) {
-      const text = TRANSLATIONS[currentLang][key];
-      
-      // Handle inputs/textareas placeholders
-      if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
-        el.setAttribute("placeholder", text);
-      } else if (el.tagName === "SELECT") {
-        // If it's a select element
-      } else {
-        // Keep icons inside elements if any
-        const icon = el.querySelector("i");
-        if (icon) {
-          // Clear text nodes but keep the <i> element
-          Array.from(el.childNodes).forEach(node => {
-            if (node !== icon) el.removeChild(node);
-          });
-          el.appendChild(document.createTextNode(" " + text));
-        } else if (key === "hero-title-main" || text.includes("<")) {
-          // Preserve tags like <br> and <em>
-          el.innerHTML = text;
-        } else {
-          el.textContent = text;
-        }
-      }
-    }
-  });
-
-  // Special handle: update toggle button label
-  const langLabel = document.getElementById("lang-label");
-  if (langLabel) {
-    langLabel.textContent = currentLang === "am" ? "EN" : "አማ";
-  }
-}
-
-function toggleLanguage() {
-  currentLang = currentLang === "am" ? "en" : "am";
-  localStorage.setItem("rceth_lang", currentLang);
-  applyTranslations();
-  
-  // Custom event so other scripts can listen to language change (e.g. updating counts)
-  const event = new CustomEvent("langChanged", { detail: currentLang });
-  window.dispatchEvent(event);
-}
-
-// Initial application
-document.addEventListener("DOMContentLoaded", () => {
-  applyTranslations();
-  
-  const toggleBtn = document.getElementById("lang-toggle");
-  if (toggleBtn) {
-    toggleBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      toggleLanguage();
-    });
-  }
-});
