@@ -151,7 +151,14 @@ async function seedSettings() {
       stat_vehicles_sold: '500',
       stat_happy_clients: '12',
       stat_years_in_business: '5',
-      stat_verified_quality: '100'
+      stat_verified_quality: '100',
+      // TikTok video IDs — stored as a JSON array string so admin can manage from dashboard
+      tiktok_video_ids: JSON.stringify([
+        '7648654778792152321',
+        '7653476960747752720',
+        '7655566178441612545',
+        '7519578963522489605'
+      ])
     };
 
     for (const [key, value] of Object.entries(defaults)) {
@@ -951,17 +958,27 @@ app.delete('/api/cars/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// ── TikTok video IDs ───────────────────────────────────────
-// Paste full TikTok video URLs here — just replace the placeholders
-const TIKTOK_VIDEO_IDS = [
-  '7648654778792152321',
-  '7653476960747752720',
-  '7655566178441612545',
-  '7519578963522489605',
-];
-
-app.get('/api/tiktok', (_req, res) => {
-  res.json(TIKTOK_VIDEO_IDS);
+// ── TikTok video IDs — now dynamic, managed via dashboard Settings ─────────
+app.get('/api/tiktok', async (_req, res) => {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      const setting = await Settings.findOne({ key: 'tiktok_video_ids' });
+      if (setting && setting.value) {
+        const ids = JSON.parse(setting.value);
+        return res.json(Array.isArray(ids) ? ids : []);
+      }
+    }
+    // Fallback if DB is offline or setting not yet seeded
+    res.json([
+      '7648654778792152321',
+      '7653476960747752720',
+      '7655566178441612545',
+      '7519578963522489605'
+    ]);
+  } catch (err) {
+    console.error('Error reading tiktok_video_ids setting:', err.message);
+    res.json([]);
+  }
 });
 
 // ── 3D Model proxy ─────────────────────────────────────────

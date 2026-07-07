@@ -991,6 +991,27 @@
                 </div>
               </div>
             </form>
+
+            <!-- TikTok Videos Manager (full-width, below the 2-col form) -->
+            <div style="margin-top: 32px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 28px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                <div>
+                  <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0; color: var(--text-muted);"><i class="fa-brands fa-tiktok" style="color: var(--accent); margin-right: 8px;"></i>TikTok Videos Feed</h3>
+                  <p style="font-size: 11px; color: var(--text-dim); margin: 4px 0 0 0;">Paste a full TikTok video URL or just the numeric video ID. These appear in the Videos section on the homepage.</p>
+                </div>
+                <button type="button" id="add-video-btn" class="btn btn-primary" style="padding: 10px 18px; white-space: nowrap;">
+                  <i class="fa-solid fa-plus"></i> Add Video
+                </button>
+              </div>
+              <div id="video-ids-list" style="display: flex; flex-direction: column; gap: 10px; min-height: 60px;">
+                <p style="color: var(--text-dim); font-size: 13px; text-align: center; padding: 20px;">Loading videos...</p>
+              </div>
+              <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+                <button type="button" id="save-videos-btn" class="btn btn-primary" style="padding: 12px 30px;">
+                  <i class="fa-solid fa-floppy-disk" style="margin-right: 8px;"></i> Save Videos
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div> <!-- End of dash-panels-container -->
@@ -1280,6 +1301,83 @@
 
 
     // ── Global settings loader & saver ──
+    // currentVideoIds holds the live list the admin is editing
+    let currentVideoIds = [];
+
+    function extractVideoId(raw) {
+      // Accept full URLs like https://www.tiktok.com/@user/video/1234567890
+      const match = raw.match(/(\d{15,20})/);
+      return match ? match[1] : raw.trim();
+    }
+
+    function renderVideoList() {
+      const list = document.getElementById('video-ids-list');
+      if (!list) return;
+      if (currentVideoIds.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-dim);font-size:13px;text-align:center;padding:20px;">No videos added yet. Click "Add Video" to get started.</p>';
+        return;
+      }
+      list.innerHTML = '';
+      currentVideoIds.forEach((id, idx) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:12px;background:#fff;border:1px solid rgba(0,0,0,0.07);border-radius:8px;padding:12px 16px;';
+        row.innerHTML = `
+          <i class="fa-brands fa-tiktok" style="color:var(--accent);font-size:18px;flex-shrink:0;"></i>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:3px;">Video #${idx + 1}</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);font-family:monospace;word-break:break-all;">${id}</div>
+          </div>
+          <a href="https://www.tiktok.com/video/${id}" target="_blank" title="Preview on TikTok"
+             style="color:var(--text-dim);font-size:14px;text-decoration:none;padding:6px;border-radius:4px;transition:color 0.2s;flex-shrink:0;"
+             onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </a>
+          <button type="button" onclick="removeVideo(${idx})"
+            style="background:rgba(178,34,34,0.06);border:1px solid rgba(178,34,34,0.2);color:#b22222;width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"
+            onmouseover="this.style.background='#b22222';this.style.color='#fff';" onmouseout="this.style.background='rgba(178,34,34,0.06)';this.style.color='#b22222';"
+            title="Remove">
+            <i class="fa-solid fa-xmark"></i>
+          </button>`;
+        list.appendChild(row);
+      });
+    }
+
+    window.removeVideo = function(idx) {
+      currentVideoIds.splice(idx, 1);
+      renderVideoList();
+    };
+
+    document.getElementById('add-video-btn')?.addEventListener('click', () => {
+      const raw = prompt('Paste TikTok video URL or video ID:');
+      if (!raw || !raw.trim()) return;
+      const id = extractVideoId(raw.trim());
+      if (!id) { showToast('Could not extract a valid video ID.', true); return; }
+      if (currentVideoIds.includes(id)) { showToast('This video ID is already in the list.', true); return; }
+      currentVideoIds.push(id);
+      renderVideoList();
+    });
+
+    document.getElementById('save-videos-btn')?.addEventListener('click', async () => {
+      const btn = document.getElementById('save-videos-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ tiktok_video_ids: JSON.stringify(currentVideoIds) })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to save videos');
+        showToast(`Videos saved successfully (${currentVideoIds.length} video${currentVideoIds.length !== 1 ? 's' : ''})`);
+      } catch (err) {
+        showToast(err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk" style="margin-right:8px;"></i> Save Videos';
+      }
+    });
+
     async function loadGlobalSettings() {
       try {
         const res = await fetch('/api/settings');
@@ -1292,6 +1390,14 @@
               input.value = settings[key] || '';
             }
           });
+          // Hydrate the video ID list
+          if (settings.tiktok_video_ids) {
+            try {
+              const parsed = JSON.parse(settings.tiktok_video_ids);
+              currentVideoIds = Array.isArray(parsed) ? parsed : [];
+            } catch { currentVideoIds = []; }
+          }
+          renderVideoList();
         }
       } catch (err) {
         console.error('Error loading global settings:', err);
