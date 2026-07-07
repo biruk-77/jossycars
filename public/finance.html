@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vehicle Finance & Duty | Real Cars ETH</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="i18n.js"></script>
+  <style>
+    /* Premium Page Layout for Sub-screens */
+    .subpage-container {
+      max-width: 1200px;
+      margin: 120px auto 60px;
+      padding: 0 24px;
+    }
+    .subpage-title-section {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+    .subpage-title-section h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -1.5px;
+      margin-bottom: 12px;
+    }
+    .subpage-subtitle {
+      font-size: 16px;
+      color: var(--text-dim);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Tabs navigation */
+    .finance-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 40px;
+      border-bottom: 1px solid var(--w15);
+      padding-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    .finance-tab-btn {
+      background: none;
+      border: none;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: var(--transition-smooth);
+    }
+    .finance-tab-btn.active {
+      background: var(--gold);
+      color: var(--text);
+      box-shadow: 0 4px 15px rgba(255, 210, 0, 0.2);
+    }
+    .finance-tab-btn:hover:not(.active) {
+      background: var(--s2);
+      color: var(--text);
+    }
+
+    .finance-section-card {
+      display: none;
+      background: var(--s1);
+      border: 1px solid var(--w15);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+      animation: fadeIn 0.5s var(--ease);
+    }
+    .finance-section-card.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Calculator Specifics */
+    .calculator-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 40px;
+    }
+    @media (max-width: 900px) {
+      .calculator-layout { grid-template-columns: 1fr; }
+    }
+
+    .calc-sliders {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .slider-label {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+    .slider-value-display {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .calc-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--s2);
+      outline: none;
+    }
+    .calc-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--gold);
+      border: 2px solid #fff;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      transition: transform 0.1s ease;
+    }
+    .calc-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    .calc-results {
+      background: var(--s2);
+      border-radius: 12px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border: 1px solid var(--s3);
+    }
+    .result-main {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .result-main-val {
+      font-size: clamp(32px, 4vw, 44px);
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -1px;
+      margin-top: 5px;
+    }
+    .result-main-lbl {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+    }
+
+    .result-breakdown {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px dashed var(--s3);
+    }
+    .breakdown-row span:first-child {
+      color: var(--text-dim);
+    }
+    .breakdown-row span:last-child {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .visual-bar-container {
+      display: flex;
+      height: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+      background: #eee;
+      margin-top: 10px;
+    }
+    .bar-principal { background: var(--accent); width: 70%; transition: width 0.3s; }
+    .bar-interest { background: var(--gold); width: 30%; transition: width 0.3s; }
+
+    .bar-legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-top: 15px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-color { width: 10px; height: 10px; border-radius: 2px; }
+
+    /* Clearing Fees Table */
+    .clearing-intro {
+      margin-bottom: 30px;
+      font-size: 15px;
+      color: var(--text-muted);
+    }
+    .fees-table-container {
+      overflow-x: auto;
+    }
+    .fees-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+    .fees-table th, .fees-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--w15);
+    }
+    .fees-table th {
+      background: var(--s2);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text);
+    }
+    .fees-table tr:hover {
+      background: rgba(0,0,0,0.01);
+    }
+    .fees-table tr:last-child td {
+      border-bottom: none;
+    }
+    .fee-total-row {
+      font-weight: 800;
+      background: var(--gold-dim);
+    }
+
+    /* Duty info specs */
+    .duty-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+    @media (max-width: 768px) {
+      .duty-grid { grid-template-columns: 1fr; }
+    }
+    .duty-card {
+      border: 1px solid var(--w15);
+      border-radius: 12px;
+      padding: 24px;
+      background: var(--s2);
+      transition: var(--transition-smooth);
+    }
+    .duty-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+    }
+    .duty-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .duty-card-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .duty-badge {
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    .duty-badge.green { background: #e2f5e2; color: #1e7a1e; }
+    .duty-badge.yellow { background: #fff4d4; color: #a37600; }
+    .duty-badge.red { background: #ffe4e4; color: #b73a3a; }
+
+    .duty-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 13.5px;
+    }
+    .duty-list-item {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--s3);
+      padding-bottom: 8px;
+    }
+    .duty-list-item span:first-child {
+      color: var(--text-dim);
+    }
+    .duty-list-item span:last-child {
+      font-weight: 700;
+      color: var(--text);
+    }
+    .duty-note {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 15px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header id="main-header" style="position: fixed; top: 0; width: 100%; z-index: 100; transition: var(--transition-smooth);">
+    <div class="logo-container">
+      <img src="logo.jpg" alt="Real Cars ETH" class="logo-img">
+      <span class="logo-text">REAL CARS ETH</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/#inventory">Inventory</a></li>
+      <li><a href="/#videos">Videos</a></li>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ul>
+    <div class="nav-search-container">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="nav-search-input" placeholder="Search vehicles...">
+    </div>
+    <button class="lang-toggle-btn" id="lang-toggle" style="margin-left: 15px; margin-right: 15px;">
+      <i class="fa-solid fa-globe"></i>
+      <span id="lang-label">EN</span>
+    </button>
+    <div class="nav-auth-container" id="nav-auth-container"></div>
+    <a href="https://t.me/jossycarmar" target="_blank" class="tg-btn" data-setting-href="telegram_channel">
+      <i class="fa-brands fa-telegram"></i> Contact Us
+    </a>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="subpage-container">
+    <div class="subpage-title-section">
+      <h1 data-i18n="finance-title">Finance & Duty Guides</h1>
+      <p class="subpage-subtitle" data-i18n="finance-subtitle">Plan your purchase with our interactive tools, clearing cost estimators, and updated Ethiopian custom duty breakdowns.</p>
+    </div>
+
+    <!-- TABS -->
+    <div class="finance-tabs">
+      <button class="finance-tab-btn active" data-tab="loan-calculator" data-i18n="tab-loans">Loan Calculator</button>
+      <button class="finance-tab-btn" data-tab="clearing-fees" data-i18n="tab-clearing">Djibouti/Modjo Clearing</button>
+      <button class="finance-tab-btn" data-tab="duty-info" data-i18n="tab-duty">Custom Duty Rules</button>
+    </div>
+
+    <!-- CARD 1: LOAN CALCULATOR -->
+    <section class="finance-section-card active" id="loan-calculator">
+      <div class="calculator-layout">
+        <div class="calc-sliders">
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label" data-i18n="calc-price-lbl">Vehicle Price (Birr)</span>
+              <input type="number" class="slider-value-input" id="input-price" min="500000" max="40000000" step="100000" value="6000000" style="background:rgba(255,255,255,0.07); border:1px solid var(--w15); border-radius:6px; color:var(--accent); font-family:'Outfit',sans-serif; font-size:16px; font-weight:800; text-align:right; width:150px; padding:4px 8px; outline:none;">
+            </div>
+            <input type="range" class="calc-slider" id="slide-price" min="500000" max="40000000" step="100000" value="6000000">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label" data-i18n="calc-down-lbl">Down Payment (%)</span>
+              <input type="number" class="slider-value-input" id="input-down" min="10" max="90" step="5" value="30" style="background:rgba(255,255,255,0.07); border:1px solid var(--w15); border-radius:6px; color:var(--accent); font-family:'Outfit',sans-serif; font-size:16px; font-weight:800; text-align:right; width:80px; padding:4px 8px; outline:none;">
+            </div>
+            <input type="range" class="calc-slider" id="slide-down" min="10" max="90" step="5" value="30">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label" data-i18n="calc-interest-lbl">Bank Interest Rate (Annual %)</span>
+              <input type="number" class="slider-value-input" id="input-interest" min="5" max="25" step="0.1" value="18.5" style="background:rgba(255,255,255,0.07); border:1px solid var(--w15); border-radius:6px; color:var(--accent); font-family:'Outfit',sans-serif; font-size:16px; font-weight:800; text-align:right; width:80px; padding:4px 8px; outline:none;">
+            </div>
+            <input type="range" class="calc-slider" id="slide-interest" min="5" max="25" step="0.5" value="18.5">
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span class="slider-label" data-i18n="calc-term-lbl">Loan Term (Years)</span>
+              <input type="number" class="slider-value-input" id="input-term" min="1" max="7" step="1" value="5" style="background:rgba(255,255,255,0.07); border:1px solid var(--w15); border-radius:6px; color:var(--accent); font-family:'Outfit',sans-serif; font-size:16px; font-weight:800; text-align:right; width:80px; padding:4px 8px; outline:none;">
+            </div>
+            <input type="range" class="calc-slider" id="slide-term" min="1" max="7" step="1" value="5">
+          </div>
+        </div>
+
+        <div class="calc-results">
+          <div class="result-main">
+            <span class="result-main-lbl" data-i18n="calc-monthly-lbl">Estimated Monthly Payment</span>
+            <div class="result-main-val" id="result-monthly">—</div>
+          </div>
+          <div class="result-breakdown">
+            <div class="breakdown-row">
+              <span data-i18n="calc-principal-lbl">Principal Loan Amount</span>
+              <span id="result-principal">—</span>
+            </div>
+            <div class="breakdown-row">
+              <span data-i18n="calc-down-amt-lbl">Down Payment Amount</span>
+              <span id="result-down-amt">—</span>
+            </div>
+            <div class="breakdown-row">
+              <span data-i18n="calc-interest-amt-lbl">Total Interest Paid</span>
+              <span id="result-interest-amt">—</span>
+            </div>
+            <div class="breakdown-row">
+              <span data-i18n="calc-total-lbl">Total Cost of Loan</span>
+              <span id="result-total">—</span>
+            </div>
+          </div>
+
+          <div class="visual-bar-container">
+            <div class="bar-principal" id="bar-p"></div>
+            <div class="bar-interest" id="bar-i"></div>
+          </div>
+          <div class="bar-legend">
+            <div class="legend-item">
+              <div class="legend-color" style="background: var(--accent);"></div>
+              <span data-i18n="legend-principal">Principal</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: var(--gold);"></div>
+              <span data-i18n="legend-interest">Interest</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARD 2: CLEARING FEES -->
+    <section class="finance-section-card" id="clearing-fees">
+      <p class="clearing-intro" data-i18n="clearing-intro">Approximate breakdown of logistics, port handling (Djibouti Port), warehousing at Modjo dry port, and transit documentation processing fees. <em>Note: Custom duty tax is calculated separately.</em></p>
+      <div class="fees-table-container">
+        <table class="fees-table">
+          <thead>
+            <tr>
+              <th data-i18n="fee-item-th">Fee Category</th>
+              <th data-i18n="fee-desc-th">Description</th>
+              <th data-i18n="fee-cost-th">Estimated Cost (Birr)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:700;">Djibouti Port Storage & Handling</td>
+              <td>Unloading, port storage (first 7 days free), and terminal loading charges.</td>
+              <td>85,000 Birr</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;">Transit & Road Freight (Djibouti to Modjo)</td>
+              <td>Car-carrier transport (lowbed/flatbed truck) from Djibouti border to Modjo Dry Port.</td>
+              <td>120,000 Birr</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;">Modjo Dry Port Warehousing</td>
+              <td>Storage fees inside secure bonded warehouses during custom clearance.</td>
+              <td>35,000 Birr</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;">Customs Declaration & Clearing Agent Commission</td>
+              <td>Licensed custom clearance representation and document processing.</td>
+              <td>45,000 Birr</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;">Local Transport & Inspection</td>
+              <td>Plate issuing, local traffic safety checks, and handover delivery in Addis Ababa.</td>
+              <td>15,000 Birr</td>
+            </tr>
+            <tr class="fee-total-row">
+              <td>Total Estimated Logistics Cost</td>
+              <td>Excludes custom duties. Subject to freight market variations.</td>
+              <td>300,000 Birr</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- CARD 3: CUSTOM DUTY RULES -->
+    <section class="finance-section-card" id="duty-info">
+      <div class="duty-grid">
+        <!-- EV CARD -->
+        <div class="duty-card">
+          <div class="duty-card-header">
+            <span class="duty-card-title">Electric Vehicles (EVs)</span>
+            <span class="duty-badge green">Lowest Tax</span>
+          </div>
+          <div class="duty-list">
+            <div class="duty-list-item">
+              <span>Customs Duty (CBU)</span>
+              <span>15%</span>
+            </div>
+            <div class="duty-list-item">
+              <span>Excise Tax</span>
+              <span>0%</span>
+            </div>
+            <div class="duty-list-item">
+              <span>Sur-Tax</span>
+              <span>0%</span>
+            </div>
+            <div class="duty-list-item">
+              <span>VAT (CBU / CKD)</span>
+              <span>15% / 0%</span>
+            </div>
+            <div class="duty-list-item">
+              <span>Social Welfare Levy</span>
+              <span>3%</span>
+            </div>
+          </div>
+          <p class="duty-note">*CBU = Completely Built Unit (imported full car), CKD = Completely Knocked Down (assembled locally). EVs enjoy massive tax exemptions in Ethiopia to promote green energy.</p>
+        </div>
+
+        <!-- Gas/ICE Card -->
+        <div class="duty-card">
+          <div class="duty-card-header">
+            <span class="duty-card-title">ICE (Benzene/Diesel Cars)</span>
+            <span class="duty-badge red">Highest Tax</span>
+          </div>
+          <div class="duty-list">
+            <div class="duty-list-item">
+              <span>Customs Duty</span>
+              <span>35%</span>
+            </div>
+            <div class="duty-list-item">
+              <span>Excise Tax (by engine CC)</span>
+              <span>30% – 100%+</span>
+            </div>
+            <div class="duty-list-item">
+              <span>Sur-Tax</span>
+              <span>10%</span>
+            </div>
+            <div class="duty-list-item">
+              <span>VAT</span>
+              <span>15%</span>
+            </div>
+            <div class="duty-list-item">
+              <span>Social Welfare Levy</span>
+              <span>3%</span>
+            </div>
+          </div>
+          <p class="duty-note">Import taxes on gas cars compound exponentially. A traditional car with an engine capacity above 2.0L CC can reach cumulative import tax rates of 150% to 200% of the vehicle cost.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="ent-footer" id="contact">
+    <div class="footer-grid">
+      <div class="footer-col footer-col-brand">
+        <div class="footer-brand-logo">
+          <img src="logo.jpg" alt="RC">
+          <span>REAL CARS <strong>ETH</strong></span>
+        </div>
+        <p class="footer-brand-desc">&copy; 2026 Real Cars ETH. Premium Auto Dealership, Ethiopia. All rights reserved.</p>
+        <div style="font-size: 13px; color: #a4a295; margin: 12px 0; display: flex; flex-direction: column; gap: 6px;">
+          <span><i class="fa-solid fa-phone" style="color: #FFD200; margin-right: 8px;"></i><span data-setting-text="phone1">+251 946 740 763</span></span>
+          <span><i class="fa-solid fa-phone" style="color: #FFD200; margin-right: 8px;"></i><span data-setting-text="phone2">+251 976 558 181</span></span>
+          <span><i class="fa-brands fa-telegram" style="color: #FFD200; margin-right: 8px;"></i><a href="https://t.me/Jossimulugeta" target="_blank" data-setting-href="telegram_chat_username" data-setting-text="telegram_chat_username" style="color: inherit; text-decoration: none;">@Jossimulugeta</a></span>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <div class="footer-col-links">
+          <a href="/#inventory">All Inventory</a>
+          <a href="/#inventory">SUVs & Pickups</a>
+          <a href="/#inventory">Electric Vehicles</a>
+          <a href="/#inventory">Luxury Sedans</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Sell/Trade</h4>
+        <div class="footer-col-links">
+          <a href="/services?section=valuation">Value Your Car</a>
+          <a href="/services?section=import">Request Import</a>
+          <a href="/services?section=how-it-works">How It Works</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Finance</h4>
+        <div class="footer-col-links">
+          <a href="/finance?section=loan-calculator">Loan Calculator</a>
+          <a href="/finance?section=clearing-fees">Clearing Fees</a>
+          <a href="/finance?section=duty-info">Ethiopia Duty Info</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <div class="footer-col-links">
+          <a href="/#about">About Us</a>
+          <a href="/#contact">Contact Us</a>
+          <a href="/login"><i class="fa-solid fa-lock" style="font-size: 9px; margin-right: 4px;"></i>Admin Panel</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="auth.js"></script>
+  <script>
+    // Header styling on scroll
+    document.addEventListener('DOMContentLoaded', () => {
+      const header = document.getElementById('main-header');
+      window.addEventListener('scroll', () => {
+        header.classList.toggle('scrolled', window.scrollY > 40);
+      });
+      
+      // Tabs logic
+      const tabBtns = document.querySelectorAll('.finance-tab-btn');
+      const sections = document.querySelectorAll('.finance-section-card');
+
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tabId = btn.getAttribute('data-tab');
+          tabBtns.forEach(b => b.classList.toggle('active', b === btn));
+          sections.forEach(s => s.classList.toggle('active', s.id === tabId));
+          
+          // Update URL query parameter
+          const url = new URL(window.location);
+          url.searchParams.set('section', tabId);
+          window.history.pushState({}, '', url);
+        });
+      });
+
+      // Parse query parameter section on load
+      const params = new URLSearchParams(window.location.search);
+      const sectionParam = params.get('section');
+      if (sectionParam) {
+        const matchingBtn = document.querySelector(`.finance-tab-btn[data-tab="${sectionParam}"]`);
+        if (matchingBtn) {
+          matchingBtn.click();
+        }
+      }
+
+      // LOAN CALCULATOR SCRIPT
+      const slidePrice = document.getElementById('slide-price');
+      const slideDown = document.getElementById('slide-down');
+      const slideInterest = document.getElementById('slide-interest');
+      const slideTerm = document.getElementById('slide-term');
+
+      const inputPrice = document.getElementById('input-price');
+      const inputDown = document.getElementById('input-down');
+      const inputInterest = document.getElementById('input-interest');
+      const inputTerm = document.getElementById('input-term');
+
+      const resMonthly = document.getElementById('result-monthly');
+      const resPrincipal = document.getElementById('result-principal');
+      const resDownAmt = document.getElementById('result-down-amt');
+      const resInterestAmt = document.getElementById('result-interest-amt');
+      const resTotal = document.getElementById('result-total');
+
+      const barP = document.getElementById('bar-p');
+      const barI = document.getElementById('bar-i');
+
+      function formatNumber(num) {
+        return Math.round(num).toLocaleString() + ' Birr';
+      }
+
+      function calculateLoan() {
+        const price = parseFloat(slidePrice.value);
+        const downPercent = parseFloat(slideDown.value);
+        const interestRate = parseFloat(slideInterest.value) / 100;
+        const termYears = parseFloat(slideTerm.value);
+
+        const downAmount = price * (downPercent / 100);
+        const principal = price - downAmount;
+        const termMonths = termYears * 12;
+        const monthlyRate = interestRate / 12;
+
+        let monthlyPayment = 0;
+        if (monthlyRate > 0) {
+          monthlyPayment = (principal * monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / (Math.pow(1 + monthlyRate, termMonths) - 1);
+        } else {
+          monthlyPayment = principal / termMonths;
+        }
+
+        const totalPaid = monthlyPayment * termMonths;
+        const totalInterest = totalPaid - principal;
+
+        // Update outputs
+        resMonthly.textContent = formatNumber(monthlyPayment);
+        resPrincipal.textContent = formatNumber(principal);
+        resDownAmt.textContent = formatNumber(downAmount);
+        resInterestAmt.textContent = formatNumber(totalInterest);
+        resTotal.textContent = formatNumber(totalPaid + downAmount);
+
+        // Update visual breakdown bar
+        const totalCostVal = principal + totalInterest;
+        const principalPct = (principal / totalCostVal) * 100;
+        const interestPct = (totalInterest / totalCostVal) * 100;
+
+        barP.style.width = principalPct + '%';
+        barI.style.width = interestPct + '%';
+      }
+
+      // Two-way bindings
+      slidePrice.addEventListener('input', () => { inputPrice.value = slidePrice.value; calculateLoan(); });
+      inputPrice.addEventListener('input', () => { slidePrice.value = inputPrice.value; calculateLoan(); });
+
+      slideDown.addEventListener('input', () => { inputDown.value = slideDown.value; calculateLoan(); });
+      inputDown.addEventListener('input', () => { slideDown.value = inputDown.value; calculateLoan(); });
+
+      slideInterest.addEventListener('input', () => { inputInterest.value = slideInterest.value; calculateLoan(); });
+      inputInterest.addEventListener('input', () => { slideInterest.value = inputInterest.value; calculateLoan(); });
+
+      slideTerm.addEventListener('input', () => { inputTerm.value = slideTerm.value; calculateLoan(); });
+      inputTerm.addEventListener('input', () => { slideTerm.value = inputTerm.value; calculateLoan(); });
+
+      // Dynamic settings loader hook
+      window.onSettingsLoaded = (settings) => {
+        if (settings.loan_default_price) {
+          slidePrice.value = settings.loan_default_price;
+          inputPrice.value = settings.loan_default_price;
+        }
+        if (settings.loan_default_down_payment) {
+          slideDown.value = settings.loan_default_down_payment;
+          inputDown.value = settings.loan_default_down_payment;
+        }
+        if (settings.loan_default_interest_rate) {
+          slideInterest.value = settings.loan_default_interest_rate;
+          inputInterest.value = settings.loan_default_interest_rate;
+        }
+        if (settings.loan_default_term) {
+          slideTerm.value = settings.loan_default_term;
+          inputTerm.value = settings.loan_default_term;
+        }
+        calculateLoan();
+      };
+
+      if (window.siteSettings) {
+        window.onSettingsLoaded(window.siteSettings);
+      } else {
+        calculateLoan();
+      }
+      
+      // Global navigation search input handler
+      const navSearchInput = document.getElementById('nav-search-input');
+      if (navSearchInput) {
+        navSearchInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            window.location.href = '/?q=' + encodeURIComponent(navSearchInput.value);
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

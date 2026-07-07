@@ -9,39 +9,198 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <style>
+    * { box-sizing: border-box; }
     body {
       background-color: var(--bg);
       color: var(--text);
       min-height: 100vh;
       margin: 0;
-      padding-top: 80px;
+      padding: 0;
+      display: flex;
+      /* Hide the old public site nav if style.css injects one */
     }
-    .dash-header {
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    /* Override any public-site nav for dashboard */
+    #nav { display: none !important; }
+    /* Modern Left Sidebar & Layout System (Inspired by Gleek) */
+    .dash-sidebar-left {
+      width: 260px;
+      height: 100vh;
       position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
+      top: 0;
+      left: 0;
+      background: #ffffff;
+      border-right: 1px solid rgba(0, 0, 0, 0.06);
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 5%;
+      flex-direction: column;
+      z-index: 1010;
+      transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
-    .dash-logo {
+    
+    .sidebar-logo-section {
+      height: 70px;
       display: flex;
       align-items: center;
+      padding: 0 24px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
       gap: 12px;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 2px;
+      position: relative;
     }
-    .dash-logo img {
+    
+    .sidebar-logo-section img {
       width: 32px;
       height: 32px;
       object-fit: contain;
-      border-radius: 4px;
+      border-radius: 6px;
     }
+    
+    .sidebar-logo-section .logo-text {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text);
+    }
+    
+    .sidebar-close-btn {
+      display: none;
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+    
+    .sidebar-menu-wrapper {
+      flex: 1;
+      padding: 24px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    
+    .sidebar-menu-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .sidebar-group-header {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      padding-left: 12px;
+    }
+    
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13.0px;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+    
+    .sidebar-nav-item i {
+      font-size: 16px;
+      width: 20px;
+      text-align: center;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+    
+    .sidebar-nav-item:hover {
+      background: var(--s2);
+      color: var(--text);
+    }
+    
+    .sidebar-nav-item.active {
+      background: var(--gold);
+      color: var(--text);
+      box-shadow: 0 4px 15px rgba(255, 210, 0, 0.2);
+    }
+    
+    .sidebar-nav-item.active i {
+      color: var(--text);
+    }
+    
+    /* Main Layout Area */
+    .dash-main-container {
+      margin-left: 260px;
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background: #faf9f6;
+    }
+    
+    /* Top Header styling */
+    .dash-top-header {
+      height: 70px;
+      background: #ffffff;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 40px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    
+    .sidebar-hamburger-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      color: var(--text);
+      cursor: pointer;
+    }
+    
+    .user-avatar-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: var(--text);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      box-shadow: 0 4px 10px rgba(255, 210, 0, 0.15);
+    }
+    
+    /* Content Padding */
+    .dash-panel-content {
+      padding: 40px;
+      flex: 1;
+    }
+    
+    /* Overlay backdrop */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: 1005;
+    }
+    .sidebar-overlay.open {
+      display: block;
+    }
+
     .dash-user-controls {
       display: flex;
       align-items: center;
@@ -72,11 +231,6 @@
     .logout-btn:hover {
       background: #b22222;
       color: #ffffff;
-    }
-    .dash-content {
-      padding: 40px 5%;
-      max-width: 1400px;
-      margin: 0 auto;
     }
     .dash-actions-row {
       display: flex;
@@ -389,157 +543,460 @@
     .toast-error {
       background: #b22222;
     }
+
+    /* Active panels display transition */
+    .dash-panel-section {
+      display: none;
+    }
+    .dash-panel-section.active {
+      display: block;
+      animation: dashFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes dashFadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .dash-panels-container {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    .panel-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #faf9f6;
+    }
+    .panel-header h2 {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0;
+      color: var(--text-muted);
+    }
+
+    .dash-top-header .nav-search-container {
+      transition: box-shadow 0.2s ease, background 0.2s ease;
+    }
+    .dash-top-header .nav-search-container:focus-within {
+      background: #ffffff !important;
+      box-shadow: 0 0 0 2px var(--gold);
+    }
+    .dash-top-header .nav-search-container input {
+      font-family: 'Outfit', sans-serif;
+    }
+    .dash-top-header .nav-search-container input::placeholder {
+      color: var(--text-dim);
+      opacity: 1;
+    }
+
+    /* ── Responsive: Mobile sidebar drawer ── */
+    @media (max-width: 1024px) {
+      .dash-sidebar-left {
+        transform: translateX(-100%);
+      }
+      .dash-sidebar-left.open {
+        transform: translateX(0);
+      }
+      .sidebar-close-btn {
+        display: block;
+      }
+      .sidebar-hamburger-btn {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+      .dash-main-container {
+        margin-left: 0;
+      }
+      .dash-panel-content {
+        padding: 20px;
+      }
+      .dash-top-header {
+        padding: 0 20px;
+      }
+      .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+      .dash-actions-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Dashboard Header -->
-  <header class="dash-header">
-    <div class="dash-logo">
-      <img src="logo.jpg" alt="RC">
-      <span>REAL CARS <strong>ETH</strong></span>
-    </div>
-    <div class="dash-user-controls">
-      <div class="welcome-msg">Admin: <span id="admin-name">—</span></div>
-      <button class="logout-btn" id="logout-btn">Log Out</button>
-    </div>
-  </header>
+  <!-- Sidebar Overlay (for Mobile drawer close) -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-  <!-- Dashboard Content -->
-  <main class="dash-content">
+  <!-- Left Sidebar Navigation Panel (styled like Gleek dashboard) -->
+  <aside class="dash-sidebar-left" id="dash-sidebar-left">
+    <div class="sidebar-logo-section">
+      <img src="logo.jpg" alt="RC" class="logo-img">
+      <span class="logo-text">REAL CARS <strong>ETH</strong></span>
+      <button class="sidebar-close-btn" id="sidebar-close-btn">&times;</button>
+    </div>
     
-    <div class="dash-actions-row">
-      <div class="dash-title">
-        <h1>Inventory Dashboard</h1>
-        <p>Manage physical car inventory and synchronize with the Telegram channel feed.</p>
+    <div class="sidebar-menu-wrapper">
+      <div class="sidebar-menu-group">
+        <div class="sidebar-group-header">Inventory & Leads</div>
+        <div class="sidebar-nav-item active" data-target="panel-listings">
+          <i class="fa-solid fa-car"></i>
+          <span>Car Inventory</span>
+        </div>
+        <div class="sidebar-nav-item" data-target="panel-leads">
+          <i class="fa-solid fa-user-group"></i>
+          <span>Customer Leads</span>
+        </div>
+        <div class="sidebar-nav-item" data-target="panel-contacts">
+          <i class="fa-solid fa-envelope-open-text"></i>
+          <span>Appraisals & Inbox</span>
+        </div>
       </div>
-      <div class="action-buttons">
-        <button class="btn btn-secondary" id="sync-btn"><i class="fa-solid fa-rotate"></i> Sync Telegram</button>
-        <button class="btn btn-primary" id="add-car-btn"><i class="fa-solid fa-plus"></i> Add Vehicle</button>
+
+      <div class="sidebar-menu-group super-admin-only">
+        <div class="sidebar-group-header">Management</div>
+        <div class="sidebar-nav-item super-admin-only" data-target="panel-users">
+          <i class="fa-solid fa-users"></i>
+          <span>User Accounts</span>
+        </div>
+        <div class="sidebar-nav-item super-admin-only" data-target="panel-settings">
+          <i class="fa-solid fa-gears"></i>
+          <span>Global Settings</span>
+        </div>
       </div>
     </div>
+  </aside>
 
-    <!-- Stats summary grid -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-info">
-          <h3>Total Listings</h3>
-          <p id="stat-total">0</p>
+  <!-- Main Content Wrapper -->
+  <div class="dash-main-container">
+    
+    <!-- Top Header -->
+    <header class="dash-top-header">
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <button class="sidebar-hamburger-btn" id="sidebar-hamburger-btn" style="display: block;">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="nav-search-container" style="border: none; background: #faf9f6; border-radius: 8px; padding: 4px 16px; width: 300px; max-width: 100%; display: flex; align-items: center;">
+          <i class="fa-solid fa-magnifying-glass" style="color: var(--text-dim); margin-right: 10px;"></i>
+          <input type="text" id="nav-search-input" placeholder="Search vehicles..." style="border: none; background: transparent; outline: none; font-size: 13px; color: var(--text); width: 100%;">
         </div>
-        <div class="stat-icon"><i class="fa-solid fa-car"></i></div>
       </div>
-      <div class="stat-card">
-        <div class="stat-info">
-          <h3>Telegram Scraped</h3>
-          <p id="stat-telegram">0</p>
+      
+      <div class="dash-user-controls" style="display: flex; align-items: center; gap: 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="user-avatar-badge" id="user-avatar-badge">A</div>
+          <div class="welcome-msg" style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Admin: <span id="admin-name" style="color: var(--accent);">—</span></div>
         </div>
-        <div class="stat-icon" style="background: rgba(0, 136, 204, 0.08); color: #0088cc;"><i class="fa-brands fa-telegram"></i></div>
+        <button class="logout-btn" id="logout-btn">Log Out</button>
       </div>
-      <div class="stat-card">
-        <div class="stat-info">
-          <h3>Manually Added</h3>
-          <p id="stat-manual">0</p>
-        </div>
-        <div class="stat-icon"><i class="fa-solid fa-pen-to-square"></i></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-info">
-          <h3>Customer Leads</h3>
-          <p id="stat-leads">0</p>
-        </div>
-        <div class="stat-icon" style="background: rgba(46, 213, 115, 0.08); color: #2ed573;"><i class="fa-solid fa-user-group"></i></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-info">
-          <h3>Registered Users</h3>
-          <p id="stat-users">0</p>
-        </div>
-        <div class="stat-icon" style="background: rgba(99, 102, 241, 0.08); color: #6366f1;"><i class="fa-solid fa-users"></i></div>
-      </div>
-    </div>
+    </header>
 
-    <!-- Car Listings Panel -->
-    <div class="listings-panel">
-      <div class="listings-table-wrap">
-        <table class="listings-table">
-          <thead>
-            <tr>
-              <th>Vehicle Details</th>
-              <th>Price</th>
-              <th>Source</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="listings-tbody">
-            <tr>
-              <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-dim);">
-                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; margin-bottom: 12px;"></i>
-                <p>Loading listings database...</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Content Panel Area -->
+    <main class="dash-panel-content">
+      
+      <div class="dash-actions-row">
+        <div class="dash-title">
+          <h1 id="dash-current-title">Car Inventory</h1>
+          <p id="dash-current-desc">Manage physical car inventory and synchronize with the Telegram channel feed.</p>
+        </div>
+        <div class="action-buttons">
+          <button class="btn btn-secondary" id="sync-btn"><i class="fa-solid fa-rotate"></i> Sync Telegram</button>
+          <button class="btn btn-primary" id="add-car-btn"><i class="fa-solid fa-plus"></i> Add Vehicle</button>
+        </div>
       </div>
-    </div>
 
-    <!-- Customer Leads Panel -->
-    <div class="listings-panel" style="margin-top: 30px;">
-      <div class="panel-header" style="padding: 20px 24px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; background: #faf9f6;">
-        <h2 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0; color: var(--text-muted);">Customer Leads / Inquiries</h2>
-        <span style="font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px;" id="leads-count-meta">0 leads</span>
+      <!-- Stats summary grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Total Listings</h3>
+            <p id="stat-total">0</p>
+          </div>
+          <div class="stat-icon"><i class="fa-solid fa-car"></i></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Telegram Scraped</h3>
+            <p id="stat-telegram">0</p>
+          </div>
+          <div class="stat-icon" style="background: rgba(0, 136, 204, 0.08); color: #0088cc;"><i class="fa-brands fa-telegram"></i></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Manually Added</h3>
+            <p id="stat-manual">0</p>
+          </div>
+          <div class="stat-icon"><i class="fa-solid fa-pen-to-square"></i></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Customer Leads</h3>
+            <p id="stat-leads">0</p>
+          </div>
+          <div class="stat-icon" style="background: rgba(46, 213, 115, 0.08); color: #2ed573;"><i class="fa-solid fa-user-group"></i></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Registered Users</h3>
+            <p id="stat-users">0</p>
+          </div>
+          <div class="stat-icon" style="background: rgba(99, 102, 241, 0.08); color: #6366f1;"><i class="fa-solid fa-users"></i></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>Appraisals & Requests</h3>
+            <p id="stat-contacts">0</p>
+          </div>
+          <div class="stat-icon" style="background: rgba(255, 107, 107, 0.08); color: #ff6b6b;"><i class="fa-solid fa-envelope-open-text"></i></div>
+        </div>
       </div>
-      <div class="listings-table-wrap">
-        <table class="listings-table">
-          <thead>
-            <tr>
-              <th>Customer Info</th>
-              <th>Vehicle of Interest</th>
-              <th>Inquiry Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="leads-tbody">
-            <tr>
-              <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-dim);">
-                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; margin-bottom: 12px;"></i>
-                <p>Loading leads database...</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
 
-    <!-- Users Management Panel -->
-    <div class="listings-panel" style="margin-top: 30px;">
-      <div class="panel-header" style="padding: 20px 24px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; background: #faf9f6;">
-        <h2 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0; color: var(--text-muted);">Registered Users</h2>
-        <span style="font-size: 11px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 1px;" id="users-count-meta">0 users</span>
-      </div>
-      <div class="listings-table-wrap">
-        <table class="listings-table">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Phone</th>
-              <th>Role</th>
-              <th>Joined</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="users-tbody">
-            <tr>
-              <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-dim);">
-                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; margin-bottom: 12px;"></i>
-                <p>Loading users...</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <!-- Main Panels Container -->
+      <div class="dash-panels-container">
+        
+        <!-- Car Listings Panel -->
+        <div class="listings-panel dash-panel-section active" id="panel-listings">
+          <div class="listings-table-wrap">
+            <table class="listings-table">
+              <thead>
+                <tr>
+                  <th>Vehicle Details</th>
+                  <th>Price</th>
+                  <th>Source</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="listings-tbody">
+                <tr>
+                  <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-dim);">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; margin-bottom: 12px;"></i>
+                    <p>Loading listings database...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-  </main>
+        <!-- Customer Leads Panel -->
+        <div class="listings-panel dash-panel-section" id="panel-leads">
+          <div class="panel-header" style="padding: 20px 24px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; background: #faf9f6;">
+            <h2 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0; color: var(--text-muted);">Customer Leads / Inquiries</h2>
+            <span style="font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px;" id="leads-count-meta">0 leads</span>
+          </div>
+          <div class="listings-table-wrap">
+            <table class="listings-table">
+              <thead>
+                <tr>
+                  <th>Customer Info</th>
+                  <th>Vehicle of Interest</th>
+                  <th>Inquiry Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="leads-tbody">
+                <tr>
+                  <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-dim);">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; margin-bottom: 12px;"></i>
+                    <p>Loading leads database...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Contact Messages / Appraisal Requests Panel -->
+        <div class="listings-panel dash-panel-section" id="panel-contacts">
+          <div class="panel-header" style="padding: 20px 24px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; background: #faf9f6;">
+            <h2 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0; color: var(--text-muted);">Appraisals, Imports & Messages</h2>
+            <span style="font-size: 11px; font-weight: 700; color: #ff6b6b; text-transform: uppercase; letter-spacing: 1px;" id="contacts-count-meta">0 requests</span>
+          </div>
+          <div class="listings-table-wrap">
+            <table class="listings-table">
+              <thead>
+                <tr>
+                  <th>Client Contact</th>
+                  <th>Request Details</th>
+                  <th>Photos</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="contacts-tbody">
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-dim);">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; margin-bottom: 12px;"></i>
+                    <p>Loading requests...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Users Management Panel -->
+        <div class="listings-panel dash-panel-section super-admin-only" id="panel-users">
+          <div class="panel-header" style="padding: 20px 24px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; background: #faf9f6;">
+            <h2 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0; color: var(--text-muted);">Registered Users</h2>
+            <span style="font-size: 11px; font-weight: 700; color: #6366f1; text-transform: uppercase; letter-spacing: 1px;" id="users-count-meta">0 users</span>
+          </div>
+          <div class="listings-table-wrap">
+            <table class="listings-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Phone</th>
+                  <th>Role</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-dim);">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; margin-bottom: 12px;"></i>
+                    <p>Loading users...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Global Site Settings Panel -->
+        <div class="listings-panel dash-panel-section super-admin-only" id="panel-settings">
+          <div class="panel-header" style="padding: 20px 24px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; background: #faf9f6;">
+            <h2 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0; color: var(--text-muted);">Global Site Settings</h2>
+            <span style="font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px;">Super Admin Only</span>
+          </div>
+          <div style="padding: 30px;">
+            <form id="global-settings-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;" onsubmit="return false;">
+              <!-- Left Column: text fields & about us -->
+              <div style="display: flex; flex-direction: column; gap: 20px;">
+                <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px 0; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 8px;">Hero Section & Copy</h3>
+                
+                <div class="form-group">
+                  <label for="setting-hero_title_en" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Hero Title (English)</label>
+                  <textarea id="setting-hero_title_en" rows="2" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="setting-hero_title_am" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Hero Title (Amharic)</label>
+                  <textarea id="setting-hero_title_am" rows="2" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label for="setting-hero_subtitle_en" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Hero Subtitle (English)</label>
+                  <input type="text" id="setting-hero_subtitle_en" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                </div>
+                <div class="form-group">
+                  <label for="setting-hero_subtitle_am" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Hero Subtitle (Amharic)</label>
+                  <input type="text" id="setting-hero_subtitle_am" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="setting-about_us_en" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">About Us (English)</label>
+                  <textarea id="setting-about_us_en" rows="3" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="setting-about_us_am" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">About Us (Amharic)</label>
+                  <textarea id="setting-about_us_am" rows="3" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required></textarea>
+                </div>
+
+                <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 15px 0 10px 0; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 8px;">About Us Stats</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                  <div class="form-group">
+                    <label for="setting-stat_vehicles_sold" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Vehicles Sold</label>
+                    <input type="number" id="setting-stat_vehicles_sold" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="setting-stat_happy_clients" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Happy Clients (K+)</label>
+                    <input type="number" id="setting-stat_happy_clients" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="setting-stat_years_in_business" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">In Business (Years)</label>
+                    <input type="number" id="setting-stat_years_in_business" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="setting-stat_verified_quality" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Verified Quality (%)</label>
+                    <input type="number" id="setting-stat_verified_quality" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: Contact info & Social links -->
+              <div style="display: flex; flex-direction: column; gap: 20px;">
+                <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px 0; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 8px;">Contact & Social Media Links</h3>
+                
+                <div class="form-group">
+                  <label for="setting-phone1" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Primary Phone Number</label>
+                  <input type="text" id="setting-phone1" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                </div>
+                <div class="form-group">
+                  <label for="setting-phone2" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Secondary Phone Number</label>
+                  <input type="text" id="setting-phone2" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="setting-telegram_chat_username" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Telegram Username (for Direct Chat)</label>
+                  <input type="text" id="setting-telegram_chat_username" placeholder="e.g. @Jossimulugeta" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                </div>
+                <div class="form-group">
+                  <label for="setting-telegram_channel" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Telegram Channel URL</label>
+                  <input type="text" id="setting-telegram_channel" placeholder="e.g. https://t.me/jossycarmar" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="setting-youtube_link" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Youtube Channel URL</label>
+                  <input type="text" id="setting-youtube_link" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                </div>
+                <div class="form-group">
+                  <label for="setting-instagram_link" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Instagram Page URL</label>
+                  <input type="text" id="setting-instagram_link" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                </div>
+                <div class="form-group">
+                  <label for="setting-tiktok_link" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">TikTok Page URL</label>
+                  <input type="text" id="setting-tiktok_link" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                </div>
+
+                <h3 style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 15px 0 10px 0; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 8px;">Loan Calculator Defaults</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                  <div class="form-group">
+                    <label for="setting-loan_default_price" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Vehicle Price (Birr)</label>
+                    <input type="number" id="setting-loan_default_price" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="setting-loan_default_down_payment" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Down Payment (%)</label>
+                    <input type="number" id="setting-loan_default_down_payment" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="setting-loan_default_interest_rate" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Interest Rate (%)</label>
+                    <input type="number" id="setting-loan_default_interest_rate" step="0.1" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="setting-loan_default_term" style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--text-muted);">Loan Term (Years)</label>
+                    <input type="number" id="setting-loan_default_term" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); width: 100%; font-family: inherit; font-size: 14px; background:#fff; color:#333;" required>
+                  </div>
+                </div>
+
+                <div style="margin-top: 15px; display: flex; justify-content: flex-end;">
+                  <button type="submit" class="btn btn-primary" id="save-settings-btn" style="padding: 12px 30px;">
+                    <i class="fa-solid fa-floppy-disk" style="margin-right: 8px;"></i> Save Settings
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div> <!-- End of dash-panels-container -->
+      
+    </main> <!-- End of dash-panel-content -->
+  </div> <!-- End of dash-main-container -->
 
   <!-- Add/Edit Vehicle Modal -->
   <div class="modal" id="car-modal">
@@ -617,8 +1074,16 @@
   <div class="toast" id="toast">Listing saved successfully.</div>
 
   <script>
+    // Helper to read cookie by name
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
     // Verification check
-    const token = localStorage.getItem('rceth_token');
+    const token = getCookie('rceth_token') || localStorage.getItem('rceth_token');
     const username = localStorage.getItem('rceth_username');
     if (!token) {
       window.location.href = 'login.html';
@@ -632,16 +1097,246 @@
         return res.json();
       })
       .then(user => {
-        if (user.role !== 'admin') {
+        if (user.role !== 'admin' && user.role !== 'superadmin') {
           window.location.href = 'index.html';
         } else {
-          document.getElementById('admin-name').textContent = user.name || user.username;
+          window.currentUser = user;
+          document.getElementById('admin-name').textContent = `${user.name || user.username} (${user.role.toUpperCase()})`;
+          
+          if (user.role !== 'superadmin') {
+            document.querySelectorAll('.super-admin-only').forEach(el => el.style.display = 'none');
+          }
+          
+          // Boot sections
+          loadListings();
+          loadInquiries();
+          loadContacts();
+          if (user.role === 'superadmin') {
+            loadUsers();
+            loadGlobalSettings();
+          }
         }
       })
       .catch(() => {
+        document.cookie = "rceth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         localStorage.removeItem('rceth_token');
         localStorage.removeItem('rceth_username');
         window.location.href = 'login.html';
+      });
+    }
+
+    // Hamburger drawer controls on mobile
+    const hamburgerBtn = document.getElementById('sidebar-hamburger-btn');
+    const closeBtn = document.getElementById('sidebar-close-btn');
+    const sidebar = document.getElementById('dash-sidebar-left');
+    const overlay = document.getElementById('sidebar-overlay');
+    
+    if (hamburgerBtn && sidebar && overlay) {
+      hamburgerBtn.addEventListener('click', () => {
+        sidebar.classList.add('open');
+        overlay.classList.add('open');
+      });
+    }
+    
+    function closeDrawer() {
+      if (sidebar) sidebar.classList.remove('open');
+      if (overlay) overlay.classList.remove('open');
+    }
+    
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    if (overlay) overlay.addEventListener('click', closeDrawer);
+
+    // Sidebar Navigation logic
+    const sectionMetadata = {
+      'panel-listings': {
+        title: 'Car Inventory',
+        desc: 'Manage physical car inventory and synchronize with the Telegram channel feed.',
+        showActions: true
+      },
+      'panel-leads': {
+        title: 'Customer Leads',
+        desc: 'View and handle buyer requests, contact information, and follow-ups.',
+        showActions: false
+      },
+      'panel-contacts': {
+        title: 'Appraisals & Inbox',
+        desc: 'Review direct contact submissions, trade-ins, and appraisal inquiries.',
+        showActions: false
+      },
+      'panel-users': {
+        title: 'User Accounts',
+        desc: 'Manage roles, update credentials, and control access permissions for administrators.',
+        showActions: false
+      },
+      'panel-settings': {
+        title: 'Global Settings',
+        desc: 'Update site-wide settings, social profiles, business phone numbers, and hero sections.',
+        showActions: false
+      }
+    };
+
+    document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const targetId = item.getAttribute('data-target');
+        
+        // Toggle active class on sidebar buttons
+        document.querySelectorAll('.sidebar-nav-item').forEach(btn => btn.classList.toggle('active', btn === item));
+        
+        // Toggle active class on panels
+        document.querySelectorAll('.dash-panel-section').forEach(panel => {
+          panel.classList.toggle('active', panel.id === targetId);
+        });
+
+        // Update dashboard title and description dynamically
+        const meta = sectionMetadata[targetId];
+        if (meta) {
+          document.getElementById('dash-current-title').textContent = meta.title;
+          document.getElementById('dash-current-desc').textContent = meta.desc;
+          
+          // Toggle show/hide actions block
+          const actionsBtnContainer = document.querySelector('.dash-actions-row .action-buttons');
+          if (actionsBtnContainer) {
+            actionsBtnContainer.style.display = meta.showActions ? 'flex' : 'none';
+          }
+        }
+
+        // Auto-close sidebar on mobile after clicking item
+        closeDrawer();
+      });
+    });
+
+    // ── Top-header search: live filter inventory rows ──
+    function activateInventoryPanel() {
+      const targetId = 'panel-listings';
+      // Switch sidebar active state
+      document.querySelectorAll('.sidebar-nav-item').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-target') === targetId);
+      });
+      // Switch panel active state
+      document.querySelectorAll('.dash-panel-section').forEach(panel => {
+        panel.classList.toggle('active', panel.id === targetId);
+      });
+      // Update title/desc
+      const meta = sectionMetadata[targetId];
+      if (meta) {
+        document.getElementById('dash-current-title').textContent = meta.title;
+        document.getElementById('dash-current-desc').textContent = meta.desc;
+        const actionsBtnContainer = document.querySelector('.dash-actions-row .action-buttons');
+        if (actionsBtnContainer) actionsBtnContainer.style.display = 'flex';
+      }
+    }
+
+    const dashSearchInput = document.getElementById('nav-search-input');
+    if (dashSearchInput) {
+      dashSearchInput.addEventListener('input', () => {
+        const q = dashSearchInput.value.trim().toLowerCase();
+        
+        // Auto-switch to inventory panel when typing
+        activateInventoryPanel();
+        
+        // Filter rows in listings table
+        const rows = document.querySelectorAll('#listings-tbody tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          const match = !q || text.includes(q);
+          row.style.display = match ? '' : 'none';
+          if (match) visibleCount++;
+        });
+
+        // Show "no results" message if nothing matches
+        const noResultsId = 'dash-search-no-results';
+        let noResultsRow = document.getElementById(noResultsId);
+        const tbody = document.getElementById('listings-tbody');
+
+        if (q && visibleCount === 0 && tbody) {
+          if (!noResultsRow) {
+            noResultsRow = document.createElement('tr');
+            noResultsRow.id = noResultsId;
+            noResultsRow.innerHTML = `
+              <td colspan="4" style="text-align:center; padding:40px; color:var(--text-dim);">
+                <i class="fa-solid fa-magnifying-glass" style="font-size:24px;margin-bottom:10px;display:block;opacity:0.4;"></i>
+                <p>No vehicles matching <strong>"${dashSearchInput.value}"</strong></p>
+              </td>`;
+            tbody.appendChild(noResultsRow);
+          } else {
+            noResultsRow.querySelector('strong').textContent = `"${dashSearchInput.value}"`;
+            noResultsRow.style.display = '';
+          }
+        } else if (noResultsRow) {
+          noResultsRow.style.display = 'none';
+        }
+      });
+
+      // Clear search on Escape key
+      dashSearchInput.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          dashSearchInput.value = '';
+          dashSearchInput.dispatchEvent(new Event('input'));
+        }
+      });
+    }
+
+
+    // ── Global settings loader & saver ──
+    async function loadGlobalSettings() {
+      try {
+        const res = await fetch('/api/settings');
+        if (!res.ok) throw new Error('Failed to fetch settings');
+        const settings = await res.json();
+        if (settings) {
+          Object.keys(settings).forEach(key => {
+            const input = document.getElementById(`setting-${key}`);
+            if (input) {
+              input.value = settings[key] || '';
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Error loading global settings:', err);
+      }
+    }
+
+    const settingsForm = document.getElementById('global-settings-form');
+    if (settingsForm) {
+      settingsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const saveBtn = document.getElementById('save-settings-btn');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+        
+        const settingsData = {};
+        const keys = [
+          'hero_title_en', 'hero_title_am', 'hero_subtitle_en', 'hero_subtitle_am',
+          'about_us_en', 'about_us_am', 'phone1', 'phone2',
+          'telegram_chat_username', 'telegram_channel', 'youtube_link', 'instagram_link', 'tiktok_link'
+        ];
+        keys.forEach(key => {
+          const input = document.getElementById(`setting-${key}`);
+          if (input) {
+            settingsData[key] = input.value.trim();
+          }
+        });
+        
+        try {
+          const res = await fetch('/api/settings', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(settingsData)
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to update settings');
+          showToast('Global settings updated successfully');
+        } catch (err) {
+          showToast(err.message, true);
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk" style="margin-right: 8px;"></i> Save Settings';
+        }
       });
     }
 
@@ -680,6 +1375,7 @@
 
     // Log out
     logoutBtn.addEventListener('click', () => {
+      document.cookie = "rceth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
       localStorage.removeItem('rceth_token');
       localStorage.removeItem('rceth_username');
       window.location.href = 'login.html';
@@ -780,6 +1476,98 @@
         if (!res.ok) throw new Error('Could not delete lead');
         showToast('Lead deleted successfully');
         loadInquiries();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    };
+
+    // ── Contact Messages & Appraisals ──
+    let dbContacts = [];
+
+    async function loadContacts() {
+      try {
+        const res = await fetch('/api/contact', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Could not fetch contact requests');
+        dbContacts = await res.json();
+        renderContactsTable();
+        updateContactsStats();
+      } catch (err) {
+        console.error('Error loading contact requests:', err);
+      }
+    }
+
+    function updateContactsStats() {
+      const contactsCount = dbContacts.length;
+      document.getElementById('stat-contacts').textContent = contactsCount;
+      document.getElementById('contacts-count-meta').textContent = `${contactsCount} request${contactsCount !== 1 ? 's' : ''}`;
+    }
+
+    function renderContactsTable() {
+      const tbody = document.getElementById('contacts-tbody');
+      if (!tbody) return;
+
+      if (dbContacts.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-dim);">
+              <p>No appraisal or import requests captured yet.</p>
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      dbContacts.forEach(msg => {
+        const tr = document.createElement('tr');
+        const msgDate = new Date(msg.date).toLocaleString();
+        
+        // Render photos thumbnail if any
+        let photosHtml = '';
+        if (msg.images && msg.images.length > 0) {
+          msg.images.forEach(img => {
+            photosHtml += `<img src="${img}" style="width:40px; height:30px; object-fit:cover; border-radius:4px; margin-right:4px; border:1px solid rgba(0,0,0,0.1);" onerror="this.style.display='none'">`;
+          });
+        } else {
+          photosHtml = `<span style="font-size:11px; color:var(--text-dim);">None</span>`;
+        }
+
+        // Parse formatting for messages so they display beautifully
+        const cleanMsg = msg.message.replace(/\n/g, '<br>');
+
+        tr.innerHTML = `
+          <td>
+            <div style="font-weight: 700; color: var(--text);">${msg.name}</div>
+            <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;"><i class="fa-solid fa-phone" style="font-size: 10px; margin-right: 4px; color: var(--accent);"></i>${msg.contact}</div>
+          </td>
+          <td>
+            <div style="font-size: 13px; line-height: 1.4; color: var(--text-muted); max-width: 450px; white-space: normal; word-break: break-word;">${cleanMsg}</div>
+          </td>
+          <td>
+            <div style="display:flex; flex-wrap:wrap; gap:4px;">${photosHtml}</div>
+          </td>
+          <td style="font-size: 12px; color: var(--text-dim); white-space: nowrap;">
+            ${msgDate}
+          </td>
+          <td>
+            <button class="row-btn row-btn-delete" onclick="deleteContactRequest('${msg._id}')" title="Delete Message"><i class="fa-solid fa-trash-can"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.deleteContactRequest = async function(id) {
+      if (!confirm('Are you sure you want to delete this contact request?')) return;
+      try {
+        const res = await fetch(`/api/contact/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Could not delete request');
+        showToast('Request deleted successfully');
+        loadContacts();
       } catch (err) {
         showToast(err.message, true);
       }
@@ -1153,10 +1941,7 @@
       }
     });
 
-    // Boot
-    loadListings();
-    loadInquiries();
-    loadUsers();
+    // Boot handled by auth callback above
   </script>
 </body>
 </html>

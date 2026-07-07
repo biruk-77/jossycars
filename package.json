@@ -11,9 +11,11 @@
     "axios": "^1.6.8",
     "bcryptjs": "^3.0.3",
     "cheerio": "^1.0.0-rc.12",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.7.3"
+    "mongoose": "^9.7.3",
+    "nodemailer": "^9.0.3"
   }
 }

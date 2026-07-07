@@ -21,7 +21,18 @@
       <li><a href="index.html#about" data-i18n="nav-about">About</a></li>
       <li><a href="index.html#contact" data-i18n="nav-contact">Contact</a></li>
     </ul>
-    <button class="lang-toggle-btn" id="lang-toggle" style="margin-left: auto; margin-right: 15px;">
+    <div class="nav-search-wrap" id="nav-search-wrap">
+      <div class="nav-search-container">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="nav-search-input" placeholder="Search vehicles..." data-i18n="search-placeholder" autocomplete="off">
+        <button class="nav-search-clear" id="nav-search-clear" style="display:none;" title="Clear search">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <!-- Live search dropdown -->
+      <div class="nav-search-dropdown" id="nav-search-dropdown"></div>
+    </div>
+    <button class="lang-toggle-btn" id="lang-toggle" style="margin-left: 15px; margin-right: 15px;">
       <i class="fa-solid fa-globe"></i>
       <span id="lang-label">EN</span>
     </button>
@@ -40,7 +51,13 @@
 
       <!-- Gallery -->
       <div class="detail-gallery">
-        <div class="gallery-main">
+        <div class="gallery-tabs">
+          <button class="gallery-tab active" id="tab-photos-btn"><i class="fa-solid fa-images"></i> Photos</button>
+          <button class="gallery-tab" id="tab-3d-btn"><i class="fa-solid fa-cube"></i> 3D Interactive</button>
+        </div>
+
+        <!-- Photos View -->
+        <div class="gallery-main" id="gallery-main-container">
           <img id="gallery-main-img" src="" alt="Vehicle">
           <button class="gallery-nav prev" id="gallery-prev"><i class="fa-solid fa-chevron-left"></i></button>
           <button class="gallery-nav next" id="gallery-next"><i class="fa-solid fa-chevron-right"></i></button>
@@ -48,6 +65,28 @@
           <!-- Slide progress bar -->
           <div class="gallery-auto-bar"><div class="gallery-auto-fill" id="gallery-auto-fill"></div></div>
         </div>
+
+        <!-- 3D View (hidden by default) -->
+        <div class="gallery-3d-container" id="gallery-3d-container" style="display: none; height: 500px; background: #030507; border-radius: 8px; overflow: hidden; position: relative;">
+          <model-viewer
+            id="detail-model-viewer"
+            src="car.glb"
+            alt="3D Car — Real Cars ETH"
+            auto-rotate
+            auto-rotate-delay="2000"
+            rotation-per-second="2.7deg"
+            camera-controls
+            shadow-intensity="3"
+            shadow-softness="0.5"
+            environment-image="ferndale_studio_04_4k_1k.hdr"
+            skybox-height="1.5m"
+            tone-mapping="aces"
+            exposure="1.1"
+            field-of-view="32deg"
+            style="width: 100%; height: 100%;"
+          ></model-viewer>
+        </div>
+
         <div class="gallery-thumbs" id="gallery-thumbs"></div>
       </div>
 
@@ -78,7 +117,7 @@
           <a href="#" target="_blank" class="detail-btn primary" id="detail-contact-tg" data-i18n="detail-contact-agent">
             <i class="fa-brands fa-telegram"></i> Enquire on Telegram
           </a>
-          <a href="tel:+251911000000" class="detail-btn secondary" id="detail-call-btn" data-i18n="detail-btn-call">
+          <a href="tel:+251946740763" class="detail-btn secondary" id="detail-call-btn" data-setting-href="phone1" data-i18n="detail-btn-call">
             <i class="fa-solid fa-phone"></i> Call Dealership
           </a>
         </div>
@@ -87,22 +126,69 @@
     </div>
   </main>
 
-  <footer id="contact">
-    <div class="footer-logo">
-      <img src="logo.jpg" alt="Real Cars ETH" class="logo-img">
-      <span class="logo-text">REAL CARS ETH</span>
+  <!-- ══ ENTERPRISE FOOTER ══ -->
+  <footer class="ent-footer" id="contact">
+    <div class="footer-grid">
+      <div class="footer-col footer-col-brand">
+        <div class="footer-brand-logo">
+          <img src="logo.jpg" alt="RC">
+          <span>REAL CARS <strong>ETH</strong></span>
+        </div>
+        <p class="footer-brand-desc" data-i18n="footer-desc">Jossy: Your Reliable Partner in the transaction of AUTOMOBILES.<br>We BUY, we SELL, We SWAP.</p>
+        <div style="font-size: 13px; color: #a4a295; margin: 12px 0; display: flex; flex-direction: column; gap: 6px;">
+          <span><i class="fa-solid fa-phone" style="color: #FFD200; margin-right: 8px;"></i><span data-setting-text="phone1">+251 946 740 763</span></span>
+          <span><i class="fa-solid fa-phone" style="color: #FFD200; margin-right: 8px;"></i><span data-setting-text="phone2">+251 976 558 181</span></span>
+          <span><i class="fa-brands fa-telegram" style="color: #FFD200; margin-right: 8px;"></i><a href="https://t.me/Jossimulugeta" target="_blank" data-setting-href="telegram_chat_username" data-setting-text="telegram_chat_username" style="color: inherit; text-decoration: none;">@Jossimulugeta</a></span>
+        </div>
+        <div class="footer-socials">
+          <a href="https://t.me/jossycarmar" target="_blank" data-setting-href="telegram_channel" class="footer-social-link"><i class="fa-brands fa-telegram"></i></a>
+          <a href="https://www.facebook.com/groups/1725142094333824/?ref=share_group_link" target="_blank" class="footer-social-link"><i class="fa-brands fa-facebook"></i></a>
+          <a href="https://youtube.com" target="_blank" data-setting-href="youtube_link" class="footer-social-link"><i class="fa-brands fa-youtube"></i></a>
+          <a href="https://instagram.com" target="_blank" data-setting-href="instagram_link" class="footer-social-link"><i class="fa-brands fa-instagram"></i></a>
+          <a href="https://tiktok.com" target="_blank" data-setting-href="tiktok_link" class="footer-social-link"><i class="fa-brands fa-tiktok"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="footer-col-shop">Shop</h4>
+        <div class="footer-col-links">
+          <a href="index.html#inventory" data-i18n="footer-link-all">All Inventory</a>
+          <a href="index.html#inventory" data-i18n="footer-link-suvs">SUVs & Pickups</a>
+          <a href="index.html#inventory" data-i18n="footer-link-evs">Electric Vehicles</a>
+          <a href="index.html#inventory" data-i18n="footer-link-luxury">Luxury Sedans</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="footer-col-sell">Sell/Trade</h4>
+        <div class="footer-col-links">
+          <a href="/services?section=valuation" data-i18n="footer-link-valuation">Value Your Car</a>
+          <a href="/services?section=import" data-i18n="footer-link-import">Request Import</a>
+          <a href="/services?section=how-it-works" data-i18n="footer-link-how">How It Works</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="footer-col-finance">Finance</h4>
+        <div class="footer-col-links">
+          <a href="/finance?section=loan-calculator" data-i18n="footer-link-loans">Loan Calculator</a>
+          <a href="/finance?section=clearing-fees" data-i18n="footer-link-clearing">Clearing Fees</a>
+          <a href="/finance?section=duty-info" data-i18n="footer-link-duty">Ethiopia Duty Info</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="footer-col-about">Company</h4>
+        <div class="footer-col-links">
+          <a href="index.html#about" data-i18n="footer-link-about">About Us</a>
+          <a href="index.html#contact" data-i18n="footer-link-contact">Contact Us</a>
+          <a href="login" data-i18n="footer-link-admin"><i class="fa-solid fa-lock" style="font-size: 9px; margin-right: 4px;"></i>Admin Panel</a>
+        </div>
+      </div>
     </div>
-    <p data-i18n="footer-copy">&copy; 2026 Real Cars ETH — Premium Auto Dealership, Ethiopia.</p>
-    <div class="footer-links">
-      <a href="https://t.me/jossycarmar" target="_blank" class="footer-link">
-        <i class="fa-brands fa-telegram"></i> @jossycarmar
-      </a>
-      <a href="tel:+251911000000" class="footer-link" data-i18n="footer-call">
-        <i class="fa-solid fa-phone"></i> Call Us
-      </a>
-      <a href="login.html" class="footer-link" data-i18n="footer-admin-access">
-        <i class="fa-solid fa-lock" style="font-size: 10px;"></i> Admin Access
-      </a>
+    <div class="footer-bottom">
+      <div class="footer-bottom-copy" data-i18n="footer-copy">&copy; 2026 Real Cars ETH. Premium Auto Dealership, Ethiopia. All rights reserved.</div>
+      <div class="footer-bottom-links">
+        <a href="#" data-i18n="footer-privacy">Privacy Policy</a>
+        <a href="#" data-i18n="footer-terms">Terms of Use</a>
+        <a href="#" data-i18n="footer-cookies">Cookie Settings</a>
+      </div>
     </div>
   </footer>
 
@@ -446,6 +532,62 @@
         document.getElementById('gallery-auto-fill').parentElement.style.display = 'none';
         thumbsEl.style.display = 'none';
       }
+
+      // Gallery Tabs (Photos vs 3D Showroom)
+      const tabPhotosBtn = document.getElementById('tab-photos-btn');
+      const tab3dBtn = document.getElementById('tab-3d-btn');
+      const galleryMainContainer = document.getElementById('gallery-main-container');
+      const gallery3dContainer = document.getElementById('gallery-3d-container');
+
+      if (tabPhotosBtn && tab3dBtn && galleryMainContainer && gallery3dContainer) {
+        tabPhotosBtn.addEventListener('click', () => {
+          tabPhotosBtn.classList.add('active');
+          tab3dBtn.classList.remove('active');
+          galleryMainContainer.style.display = 'block';
+          gallery3dContainer.style.display = 'none';
+        });
+
+        tab3dBtn.addEventListener('click', () => {
+          tab3dBtn.classList.add('active');
+          tabPhotosBtn.classList.remove('active');
+          galleryMainContainer.style.display = 'none';
+          gallery3dContainer.style.display = 'block';
+        });
+      }
+
+      // Global navigation search input handler
+      const navSearchInput = document.getElementById('nav-search-input');
+      if (navSearchInput) {
+        navSearchInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            window.location.href = 'index.html?q=' + encodeURIComponent(navSearchInput.value);
+          }
+        });
+      }
+
+      // Cookie Consent Banner logic
+      const cookieBanner = document.getElementById('cookie-consent-banner');
+      const acceptBtn = document.getElementById('cookie-accept-btn');
+      const declineBtn = document.getElementById('cookie-decline-btn');
+
+      if (cookieBanner) {
+        if (!localStorage.getItem('cookieConsent')) {
+          setTimeout(() => {
+            cookieBanner.classList.add('show');
+          }, 1500);
+        }
+
+        acceptBtn.addEventListener('click', () => {
+          localStorage.setItem('cookieConsent', 'accepted');
+          document.cookie = "cookieConsent=accepted; path=/; max-age=" + (365*24*60*60) + "; SameSite=Lax; Secure";
+          cookieBanner.classList.remove('show');
+        });
+
+        declineBtn.addEventListener('click', () => {
+          localStorage.setItem('cookieConsent', 'declined');
+          cookieBanner.classList.remove('show');
+        });
+      }
     });
   </script>
 
@@ -508,6 +650,18 @@
     </div>
   </div>
 
+  <!-- Cookie Consent Banner -->
+  <div class="cookie-banner" id="cookie-consent-banner">
+    <div class="cookie-text" data-i18n="cookie-consent-text">
+      By using realcarseth.com, you consent to the monitoring and storing of your interactions with the website. We use cookies to enhance security, personalize content, and analyze our traffic. Read our <a href="#">Privacy Policy</a> for more details.
+    </div>
+    <div class="cookie-btns">
+      <button class="cookie-btn cookie-btn-decline" id="cookie-decline-btn" data-i18n="cookie-decline">Decline</button>
+      <button class="cookie-btn cookie-btn-accept" id="cookie-accept-btn" data-i18n="cookie-accept">Accept All</button>
+    </div>
+  </div>
+
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="auth.js"></script>
   <script>
@@ -533,6 +687,21 @@
       } else {
         // Record inquiry as they've viewed the car details
         recordInquiry(car);
+      }
+
+      // Navbar Search Redirection to Homepage
+      const navSearch = document.getElementById('nav-search-input');
+      if (navSearch) {
+        navSearch.addEventListener('input', () => {
+          const q = encodeURIComponent(navSearch.value);
+          window.location.href = `index.html?q=${q}`;
+        });
+        navSearch.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            const q = encodeURIComponent(navSearch.value);
+            window.location.href = `index.html?q=${q}`;
+          }
+        });
       }
     });
   </script>

@@ -154,6 +154,15 @@ const TRANSLATIONS = {
 let currentLang = localStorage.getItem("rceth_lang") || "am";
 
 function applyTranslations() {
+  if (window.siteSettings) {
+    if (window.siteSettings.about_us_en) TRANSLATIONS.en["about-body-text"] = window.siteSettings.about_us_en;
+    if (window.siteSettings.about_us_am) TRANSLATIONS.am["about-body-text"] = window.siteSettings.about_us_am;
+    if (window.siteSettings.hero_title_en) TRANSLATIONS.en["hero-title-main"] = window.siteSettings.hero_title_en;
+    if (window.siteSettings.hero_title_am) TRANSLATIONS.am["hero-title-main"] = window.siteSettings.hero_title_am;
+    if (window.siteSettings.hero_subtitle_en) TRANSLATIONS.en["hero-sub-text"] = window.siteSettings.hero_subtitle_en;
+    if (window.siteSettings.hero_subtitle_am) TRANSLATIONS.am["hero-sub-text"] = window.siteSettings.hero_subtitle_am;
+  }
+
   const elements = document.querySelectorAll("[data-i18n]");
   elements.forEach(el => {
     const key = el.getAttribute("data-i18n");

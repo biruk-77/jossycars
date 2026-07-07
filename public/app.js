@@ -54,7 +54,7 @@ function initHeroAnimations() {
       radius: 18,  // Extremely close camera radius (extreme zooming)
       fov: 7,      // Hyper-close camera zoom (just raw details!)
       tx: 0,       // Center target X
-      ty: 0.08,
+      ty: 0.986,
       tz: 0
     };
 
@@ -71,6 +71,9 @@ function initHeroAnimations() {
       defaults: { ease: 'power4.inOut' },
       onUpdate: applyModelSettings,
       onComplete: () => {
+        // Set exact meter-based orbit/target to lock them in for debugging/viewing
+        mv.cameraOrbit = '297.1deg 83.3deg 5.561m';
+        mv.cameraTarget = '0m 0.986m 0m';
         // Drop zIndex to 1 at the end so text & buttons are interactive, while background dragging works
         if (viewerWrap) {
           gsap.set(viewerWrap, { zIndex: 1 });
@@ -103,14 +106,19 @@ function initHeroAnimations() {
 
     // 4. Settle Stage: Retreat to the designated spot on the right & zoom out to default
     const targetFov = isMobile ? 45 : 32;
-    const targetTx = 0; // Keep the pivot center perfectly on the car for clean rotations
+    const targetTx = 0;
+    const targetTy = 0.986;
+    const targetTz = 0;
+    const targetRadius = 105; // Use 105% corresponding to 5.561m
 
     tl.to(params, {
-      theta: 378, // Hold final angle matching 18deg
-      phi: 72,
-      radius: 105,
+      theta: 297.1, // Hold final angle matching 297.1deg
+      phi: 83.3,    // 83.3deg
+      radius: targetRadius, 
       fov: targetFov,
       tx: targetTx,
+      ty: targetTy,
+      tz: targetTz,
       duration: 1.8,
       ease: 'power3.out'
     }, 2.5);
@@ -546,6 +554,41 @@ function init3DShowcase() {
   const mv = document.getElementById('car-model-viewer');
   if (!mv) return;
 
+  const DEFAULT_ORBIT = '297.1deg 83.3deg 5.561m';
+  const DEFAULT_TARGET = '0m 0.986m 0m';
+  let panY = 0.986;
+
+  /* Camera constraints toggle logic */
+  let cameraLocked = true;
+  const lockToggleBtn = document.getElementById('cam-lock-toggle');
+
+  function setCameraLock(locked) {
+    cameraLocked = locked;
+    if (locked) {
+      lockToggleBtn?.classList.add('active');
+      if (lockToggleBtn) lockToggleBtn.innerHTML = '<i class="fa-solid fa-lock"></i>';
+      mv.setAttribute('min-field-of-view', '32deg');
+      mv.setAttribute('max-field-of-view', '32deg');
+      mv.setAttribute('min-camera-orbit', 'auto 0deg 5.561m');
+      mv.setAttribute('max-camera-orbit', 'auto 88deg 5.561m');
+      
+      panY = 0.986;
+      mv.cameraOrbit  = DEFAULT_ORBIT;
+      mv.cameraTarget = DEFAULT_TARGET;
+    } else {
+      lockToggleBtn?.classList.remove('active');
+      if (lockToggleBtn) lockToggleBtn.innerHTML = '<i class="fa-solid fa-lock-open"></i>';
+      mv.setAttribute('min-field-of-view', '10deg');
+      mv.setAttribute('max-field-of-view', '120deg');
+      mv.setAttribute('min-camera-orbit', 'auto -180deg 0.1m');
+      mv.setAttribute('max-camera-orbit', 'auto 180deg 30m');
+    }
+  }
+
+  lockToggleBtn?.addEventListener('click', () => {
+    setCameraLock(!cameraLocked);
+  });
+
   const SKIP = ['glass','window','wind','windshield','tire','tyre','rubber','tread',
     'wheel','rim','brake','disc','caliper','interior','seat','dashboard',
     'leather','carpet','chrome','exhaust','underbody','floor','plate'];
@@ -664,9 +707,11 @@ function init3DShowcase() {
   }
 
   function playCine(shotName, btn) {
+    setCameraLock(false);
     stopCine();
+    if (shotsWrap) shotsWrap.classList.remove('open');
     btn.classList.add('playing');
-    const c = { theta:30, phi:75, radius:100, py:0 };
+    const c = { theta:30, phi:75, radius:100, py:0.986 };
     const push = () => {
       mv.cameraOrbit  = `${c.theta}deg ${c.phi}deg ${c.radius}%`;
       mv.cameraTarget = `0m ${c.py}m 0m`;
@@ -677,25 +722,25 @@ function init3DShowcase() {
       case 'reveal':
         Object.assign(c,{theta:5,phi:82,radius:5,py:0.05}); push();
         tl.to(c,{radius:22,phi:80,duration:2,ease:'power1.out'})
-          .to(c,{radius:115,theta:28,phi:72,py:0.35,duration:4.5,ease:'power4.out'});
+          .to(c,{radius:115,theta:28,phi:72,py:0.986,duration:4.5,ease:'power4.out'});
         break;
       case 'drop':
-        Object.assign(c,{theta:22,phi:2,radius:135,py:0}); push();
+        Object.assign(c,{theta:22,phi:2,radius:135,py:0.986}); push();
         tl.to(c,{phi:18,radius:120,duration:0.9,ease:'power3.in'})
-          .to(c,{phi:74,radius:92,theta:30,py:0.25,duration:2.8,ease:'power2.inOut'})
+          .to(c,{phi:74,radius:92,theta:30,py:0.986,duration:2.8,ease:'power2.inOut'})
           .to(c,{radius:100,duration:0.7,ease:'back.out(1.4)'});
         break;
       case 'orbit':
-        Object.assign(c,{theta:0,phi:77,radius:90,py:0.22}); push();
+        Object.assign(c,{theta:0,phi:77,radius:90,py:0.986}); push();
         tl.to(c,{theta:360,duration:10,ease:'none',repeat:-1});
         break;
       case 'lowsweep':
-        Object.assign(c,{theta:-60,phi:86,radius:45,py:-0.08}); push();
+        Object.assign(c,{theta:-60,phi:86,radius:45,py:0.2}); push();
         tl.to(c,{theta:0,phi:85,radius:50,duration:2.2,ease:'power2.in'})
-          .to(c,{theta:145,phi:74,radius:88,py:0.3,duration:4.8,ease:'power2.inOut'});
+          .to(c,{theta:145,phi:74,radius:88,py:0.986,duration:4.8,ease:'power2.inOut'});
         break;
       case 'driveby':
-        Object.assign(c,{theta:-88,phi:86,radius:102,py:0.12}); push();
+        Object.assign(c,{theta:-88,phi:86,radius:102,py:0.986}); push();
         tl.to(c,{theta:-12,radius:66,duration:1.4,ease:'power3.in'})
           .to(c,{theta:18,duration:0.5,ease:'linear'})
           .to(c,{theta:90,radius:102,phi:84,duration:2.2,ease:'power3.out'});
@@ -715,8 +760,8 @@ function init3DShowcase() {
         mv.cameraTarget = '-0.903m 0.25m 1.687m';
         // c approximate match (theta normalised: -633.8+720=86, phi≈87, radius rough %)
         Object.assign(c,{theta:86,phi:87,radius:18,py:0.25});
-        tl.to(c,{theta:160,phi:84,radius:16,py:0.1,duration:3.2,ease:'power1.inOut',delay:0.5})
-          .to(c,{theta:30,phi:73,radius:104,py:0.3,duration:2.5,ease:'power4.out'});
+        tl.to(c,{theta:160,phi:84,radius:16,py:0.25,duration:3.2,ease:'power1.inOut',delay:0.5})
+          .to(c,{theta:30,phi:73,radius:104,py:0.986,duration:2.5,ease:'power4.out'});
         break;
     }
     cineTimeline = tl;
@@ -769,14 +814,10 @@ function init3DShowcase() {
     });
   });
 
-  const DEFAULT_ORBIT = '0deg 75deg 105%';
-  let panY = 0;
-
   document.getElementById('cine-stop')?.addEventListener('click', () => {
     stopAutoCine(); // stop auto-cycling
-    stopCine(); panY = 0;
-    mv.cameraOrbit  = DEFAULT_ORBIT;
-    mv.cameraTarget = 'auto auto auto';
+    stopCine();
+    setCameraLock(true);
   });
 
   // Stop auto-cycling if user drags or interacts with the 3D model manually
@@ -789,7 +830,7 @@ function init3DShowcase() {
     mv.cameraOrbit = `${(o.theta*180/Math.PI)+d}deg auto auto`;
   }
   function panCamera(dy) {
-    panY = Math.max(-1.5, Math.min(1.5, panY+dy));
+    panY = Math.max(-1.5, Math.min(2.5, panY+dy));
     mv.cameraTarget = `0m ${panY}m 0m`;
   }
 
@@ -798,9 +839,7 @@ function init3DShowcase() {
   document.getElementById('cam-left')?.addEventListener('click',  () => rotateCamera(-15));
   document.getElementById('cam-right')?.addEventListener('click', () => rotateCamera(+15));
   document.getElementById('cam-reset')?.addEventListener('click', () => {
-    panY = 0;
-    mv.cameraOrbit  = DEFAULT_ORBIT;
-    mv.cameraTarget = 'auto auto auto';
+    setCameraLock(true);
   });
 }
 
@@ -826,14 +865,14 @@ async function loadTikTokVideos() {
       const card = document.createElement('div');
       card.className = 'video-card';
       card.innerHTML = `
-        <iframe
-          src="https://www.tiktok.com/embed/v2/${id}"
-          class="video-iframe"
-          frameborder="0"
-          allow="encrypted-media"
-          allowfullscreen
-          loading="lazy"
-        ></iframe>`;
+        <video
+          src="videos/${id}.mp4"
+          class="video-player"
+          controls
+          playsinline
+          loop
+          preload="metadata"
+        ></video>`;
       track.appendChild(card);
     });
   } catch {
@@ -891,4 +930,294 @@ document.addEventListener('DOMContentLoaded', () => {
   initCamHud();
   fetchCars(DEFAULT_CHANNEL);
   loadTikTokVideos();
+
+  // Search bar synchronization, live dropdown, and Enter scrolling
+  const navSearch = document.getElementById('nav-search-input');
+  const filterSearch = document.getElementById('search-input');
+  const searchDropdown = document.getElementById('nav-search-dropdown');
+  const searchClearBtn = document.getElementById('nav-search-clear');
+  const searchWrap = document.getElementById('nav-search-wrap');
+
+  if (navSearch) {
+    // If URL search parameter exists (redirected from another page)
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryParam = urlParams.get('q');
+    if (queryParam) {
+      navSearch.value = queryParam;
+      if (filterSearch) filterSearch.value = queryParam;
+      if (searchClearBtn) searchClearBtn.style.display = 'flex';
+      
+      // We must wait a little bit for fetchCars to finish rendering listings
+      setTimeout(() => {
+        if (filterSearch) {
+          filterSearch.value = queryParam;
+          applyFilters();
+        }
+        const invEl = document.getElementById('inventory');
+        if (invEl) invEl.scrollIntoView({ behavior: 'smooth' });
+      }, 800);
+    }
+
+    // Function to render search results in dropdown
+    const renderSearchDropdown = (query) => {
+      if (!searchDropdown) return;
+      const q = query.trim().toLowerCase();
+      
+      if (!q) {
+        searchDropdown.classList.remove('show');
+        if (searchClearBtn) searchClearBtn.style.display = 'none';
+        return;
+      }
+
+      if (searchClearBtn) searchClearBtn.style.display = 'flex';
+
+      // Filter local currentCars list
+      const matches = currentCars.filter(car => {
+        const title = (car.title || '').toLowerCase();
+        const details = (car.details || '').toLowerCase();
+        return title.includes(q) || details.includes(q);
+      });
+
+      // Limit results to 6 for the dropdown
+      const displayMatches = matches.slice(0, 6);
+
+      if (displayMatches.length === 0) {
+        searchDropdown.innerHTML = `
+          <div class="search-no-results">
+            <i class="fa-solid fa-car-tunnel"></i>
+            No matching vehicles found
+          </div>
+        `;
+      } else {
+        searchDropdown.innerHTML = displayMatches.map(car => {
+          const photo = (car.photos && car.photos.length) 
+            ? car.photos[0] 
+            : 'logo.jpg';
+          return `
+            <div class="search-item" data-id="${car._id}" style="cursor: pointer;">
+              <img class="search-item-img" src="${photo}" alt="${car.title}" onerror="this.src='logo.jpg'">
+              <div class="search-item-info">
+                <span class="search-item-title">${car.title}</span>
+                <span class="search-item-price">${car.price || 'Contact for Price'}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Add event listeners to each search item
+        searchDropdown.querySelectorAll('.search-item').forEach((item, index) => {
+          item.addEventListener('click', () => {
+            const car = displayMatches[index];
+            if (car) openDetailPage(car);
+          });
+        });
+      }
+
+      searchDropdown.classList.add('show');
+    };
+
+    navSearch.addEventListener('input', () => {
+      const val = navSearch.value;
+      if (filterSearch) {
+        filterSearch.value = val;
+        applyFilters();
+      }
+      renderSearchDropdown(val);
+    });
+
+    navSearch.addEventListener('focus', () => {
+      renderSearchDropdown(navSearch.value);
+    });
+
+    // Close search dropdown on click outside
+    document.addEventListener('click', (e) => {
+      if (searchWrap && !searchWrap.contains(e.target)) {
+        searchDropdown?.classList.remove('show');
+      }
+    });
+
+    // Clear search button functionality
+    searchClearBtn?.addEventListener('click', () => {
+      navSearch.value = '';
+      if (filterSearch) {
+        filterSearch.value = '';
+        applyFilters();
+      }
+      renderSearchDropdown('');
+      navSearch.focus();
+    });
+
+    navSearch.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        searchDropdown?.classList.remove('show');
+        const invEl = document.getElementById('inventory');
+        if (invEl) invEl.scrollIntoView({ behavior: 'smooth' });
+      } else if (e.key === 'Escape') {
+        searchDropdown?.classList.remove('show');
+        navSearch.blur();
+      }
+    });
+  }
+
+  // Cookie Consent Banner initialization
+  const cookieBanner = document.getElementById('cookie-consent-banner');
+  const acceptBtn = document.getElementById('cookie-accept-btn');
+  const declineBtn = document.getElementById('cookie-decline-btn');
+
+  if (cookieBanner) {
+    if (!localStorage.getItem('cookieConsent')) {
+      setTimeout(() => {
+        cookieBanner.classList.add('show');
+      }, 1500);
+    }
+
+    acceptBtn?.addEventListener('click', () => {
+      localStorage.setItem('cookieConsent', 'accepted');
+      document.cookie = "cookieConsent=accepted; path=/; max-age=" + (365*24*60*60) + "; SameSite=Lax; Secure";
+      cookieBanner.classList.remove('show');
+    });
+
+    declineBtn?.addEventListener('click', () => {
+      localStorage.setItem('cookieConsent', 'declined');
+      cookieBanner.classList.remove('show');
+    });
+  }
+
+  // Premium Contact Form Logic
+  const contactForm = document.getElementById('home-contact-form');
+  const contactImagesInput = document.getElementById('contact-images');
+  const contactUploadTrigger = document.getElementById('contact-upload-trigger');
+  const previewsContainer = document.getElementById('contact-previews-container');
+  const submitBtn = document.getElementById('contact-form-submit');
+  const spinner = document.getElementById('submit-spinner');
+  const btnText = document.getElementById('submit-btn-text');
+
+  let selectedPhotos = []; // array of { base64Data, fileName }
+
+  if (contactForm) {
+    contactUploadTrigger?.addEventListener('click', () => {
+      contactImagesInput.click();
+    });
+
+    contactImagesInput?.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      if (selectedPhotos.length + files.length > 5) {
+        alert('You can only upload up to 5 images.');
+        return;
+      }
+
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          selectedPhotos.push({
+            base64Data: event.target.result,
+            fileName: file.name
+          });
+          renderPreviews();
+        };
+        reader.readAsDataURL(file);
+      });
+      // Clear input so same file can be chosen again if needed
+      contactImagesInput.value = '';
+    });
+
+    function renderPreviews() {
+      if (!previewsContainer) return;
+      previewsContainer.innerHTML = '';
+      selectedPhotos.forEach((photo, index) => {
+        const card = document.createElement('div');
+        card.className = 'preview-card';
+        card.innerHTML = `
+          <img src="${photo.base64Data}" alt="preview">
+          <button type="button" class="remove-btn" data-index="${index}"><i class="fa-solid fa-xmark"></i></button>
+        `;
+        previewsContainer.appendChild(card);
+      });
+
+      // Add click listeners to remove buttons
+      previewsContainer.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(btn.getAttribute('data-index'));
+          selectedPhotos.splice(idx, 1);
+          renderPreviews();
+        });
+      });
+    }
+
+    contactForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('contact-name').value.trim();
+      const contact = document.getElementById('contact-info').value.trim();
+      const message = document.getElementById('contact-message').value.trim();
+
+      if (!name || !contact || !message) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+
+      // Show loading spinner & disable button
+      submitBtn.disabled = true;
+      if (spinner) spinner.style.display = 'block';
+      if (btnText) btnText.textContent = 'Sending...';
+
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name,
+            contact,
+            message,
+            images: selectedPhotos
+          })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          showNotification(data.message || 'Message sent successfully!', 'success');
+          contactForm.reset();
+          selectedPhotos = [];
+          renderPreviews();
+        } else {
+          showNotification(data.error || 'Failed to send message.', 'error');
+        }
+      } catch (err) {
+        console.error('Contact submission error:', err);
+        showNotification('Connection error. Please try again.', 'error');
+      } finally {
+        // Reset loading state
+        submitBtn.disabled = false;
+        if (spinner) spinner.style.display = 'none';
+        if (btnText) btnText.textContent = 'Submit Message';
+      }
+    });
+  }
+
+  function showNotification(msg, type = 'success') {
+    const notifyContainer = document.createElement('div');
+    notifyContainer.style.position = 'fixed';
+    notifyContainer.style.bottom = '30px';
+    notifyContainer.style.right = '30px';
+    notifyContainer.style.padding = '15px 25px';
+    notifyContainer.style.borderRadius = '6px';
+    notifyContainer.style.background = type === 'success' ? '#22C55E' : '#EF4444';
+    notifyContainer.style.color = '#fff';
+    notifyContainer.style.fontSize = '13px';
+    notifyContainer.style.fontWeight = '700';
+    notifyContainer.style.boxShadow = '0 10px 30px rgba(0,0,0,0.15)';
+    notifyContainer.style.zIndex = '100000';
+    notifyContainer.style.fontFamily = "'Outfit', sans-serif";
+    notifyContainer.style.letterSpacing = '0.5px';
+    notifyContainer.textContent = msg;
+    document.body.appendChild(notifyContainer);
+    
+    setTimeout(() => {
+      notifyContainer.style.opacity = '0';
+      notifyContainer.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => notifyContainer.remove(), 500);
+    }, 4000);
+  }
 });

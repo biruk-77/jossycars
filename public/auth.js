@@ -1,14 +1,22 @@
 // Real Cars ETH — Shared Authentication Logic
 
+// Helper to read cookie by name
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
 // Check if user is logged in
 function isLoggedIn() {
-  return !!localStorage.getItem('rceth_token');
+  return !!getCookie('rceth_token') || !!localStorage.getItem('rceth_token');
 }
 
 // Get user data
 function getUserData() {
   return {
-    token: localStorage.getItem('rceth_token'),
+    token: getCookie('rceth_token') || localStorage.getItem('rceth_token'),
     username: localStorage.getItem('rceth_username'),
     name: localStorage.getItem('rceth_name'),
     phone: localStorage.getItem('rceth_phone')
@@ -17,6 +25,8 @@ function getUserData() {
 
 // Set user data after successful auth
 function saveUserData(data) {
+  // Set cookie with SameSite=Lax and Secure attribute (30 days expiration)
+  document.cookie = `rceth_token=${data.token}; path=/; max-age=${30*24*60*60}; SameSite=Lax; Secure`;
   localStorage.setItem('rceth_token', data.token);
   localStorage.setItem('rceth_username', data.username);
   localStorage.setItem('rceth_name', data.name || '');
@@ -26,6 +36,8 @@ function saveUserData(data) {
 
 // Log out user
 function logoutUser() {
+  // Clear cookie
+  document.cookie = "rceth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   localStorage.removeItem('rceth_token');
   localStorage.removeItem('rceth_username');
   localStorage.removeItem('rceth_name');
@@ -239,9 +251,62 @@ function closeProfileModal() {
   setTimeout(() => { modal.style.display = 'none'; }, 300);
 }
 
+async function loadGlobalSettings() {
+  try {
+    const res = await fetch('/api/settings');
+    if (!res.ok) throw new Error('Failed to load settings');
+    const settings = await res.json();
+    window.siteSettings = settings;
+
+    // Apply settings to elements
+    // 1. Text content
+    document.querySelectorAll('[data-setting-text]').forEach(el => {
+      const key = el.getAttribute('data-setting-text');
+      if (settings[key]) {
+        el.textContent = settings[key];
+      }
+    });
+
+    // 2. HTML content (preserves newlines as breaks)
+    document.querySelectorAll('[data-setting-html]').forEach(el => {
+      const key = el.getAttribute('data-setting-html');
+      if (settings[key]) {
+        el.innerHTML = settings[key].replace(/\n/g, '<br>');
+      }
+    });
+
+    // 3. Links (href attributes)
+    document.querySelectorAll('[data-setting-href]').forEach(el => {
+      const key = el.getAttribute('data-setting-href');
+      if (settings[key]) {
+        let val = settings[key];
+        if (key.startsWith('phone') && !val.startsWith('tel:') && !val.startsWith('http')) {
+          val = 'tel:' + val.replace(/\s+/g, '');
+        } else if (key.startsWith('telegram_chat_username') && !val.startsWith('http')) {
+          val = 'https://t.me/' + val.replace('@', '');
+        }
+        el.href = val;
+      }
+    });
+
+    // Re-apply translations with dynamic settings injected!
+    if (typeof applyTranslations === 'function') {
+      applyTranslations();
+    }
+
+    // Invoke page-specific callback if registered
+    if (window.onSettingsLoaded) {
+      window.onSettingsLoaded(settings);
+    }
+  } catch (err) {
+    console.error('Error loading global site settings:', err);
+  }
+}
+
 // Init when script loads
 document.addEventListener('DOMContentLoaded', () => {
   updateNavbarAuth();
+  loadGlobalSettings();
 
   // Tab buttons
   document.getElementById('tab-login-btn')?.addEventListener('click', (e) => {

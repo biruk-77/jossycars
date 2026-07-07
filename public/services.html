@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Services | Real Cars ETH</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="i18n.js"></script>
+  <style>
+    /* Subpage Layout Styles */
+    .subpage-container {
+      max-width: 1200px;
+      margin: 120px auto 60px;
+      padding: 0 24px;
+    }
+    .subpage-title-section {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+    .subpage-title-section h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -1.5px;
+      margin-bottom: 12px;
+    }
+    .subpage-subtitle {
+      font-size: 16px;
+      color: var(--text-dim);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Tabs navigation */
+    .services-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 40px;
+      border-bottom: 1px solid var(--w15);
+      padding-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    .services-tab-btn {
+      background: none;
+      border: none;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: var(--transition-smooth);
+    }
+    .services-tab-btn.active {
+      background: var(--gold);
+      color: var(--text);
+      box-shadow: 0 4px 15px rgba(255, 210, 0, 0.2);
+    }
+    .services-tab-btn:hover:not(.active) {
+      background: var(--s2);
+      color: var(--text);
+    }
+
+    .services-section-card {
+      display: none;
+      background: var(--s1);
+      border: 1px solid var(--w15);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+      animation: fadeIn 0.5s var(--ease);
+    }
+    .services-section-card.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Split form layout */
+    .services-form-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+    @media (max-width: 900px) {
+      .services-form-layout { grid-template-columns: 1fr; }
+    }
+
+    .form-inputs-col {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .form-group label {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 14px 16px;
+      border: 1px solid var(--s3);
+      border-radius: 8px;
+      background: var(--s2);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      transition: var(--transition-smooth);
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--accent);
+      background: var(--s1);
+      box-shadow: 0 0 0 3px var(--gold-glow);
+    }
+
+    /* Premium upload dropzone */
+    .dropzone-container {
+      border: 2px dashed var(--s3);
+      border-radius: 10px;
+      padding: 30px;
+      text-align: center;
+      background: var(--s2);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+    .dropzone-container:hover {
+      border-color: var(--accent);
+      background: rgba(255, 210, 0, 0.03);
+    }
+    .dropzone-icon {
+      font-size: 32px;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .dropzone-text {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .dropzone-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    .dropzone-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+      justify-content: center;
+    }
+    .preview-thumbnail {
+      width: 70px;
+      height: 70px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid var(--s3);
+    }
+
+    /* Side results panel */
+    .results-appraisal-col {
+      background: var(--s2);
+      border-radius: 12px;
+      padding: 35px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--s3);
+      text-align: center;
+    }
+    .appraisal-val-card {
+      background: var(--s1);
+      border: 1px solid var(--s3);
+      border-radius: 12px;
+      padding: 25px;
+      width: 100%;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+      margin-bottom: 25px;
+    }
+    .appraisal-val-lbl {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+    }
+    .appraisal-val-price {
+      font-size: clamp(26px, 3.5vw, 36px);
+      font-weight: 900;
+      color: var(--accent);
+      margin-top: 8px;
+    }
+    .appraisal-info-text {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+
+    .action-btn-primary {
+      background: var(--gold);
+      color: var(--text);
+      border: none;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 16px 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 4px 15px rgba(255, 210, 0, 0.3);
+      transition: var(--transition-smooth);
+    }
+    .action-btn-primary:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(230, 184, 0, 0.4);
+    }
+    .action-btn-primary:active {
+      transform: translateY(0);
+    }
+    .action-btn-primary:disabled {
+      background: var(--s3);
+      color: var(--text-dim);
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .form-status-msg {
+      margin-top: 15px;
+      font-size: 14px;
+      font-weight: 700;
+      display: none;
+    }
+    .form-status-msg.success { color: #1e7a1e; display: block; }
+    .form-status-msg.error { color: #b73a3a; display: block; }
+
+    /* Timeline Section */
+    .timeline-layout {
+      position: relative;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .timeline-layout::before {
+      content: '';
+      position: absolute;
+      left: 40px;
+      top: 10px;
+      bottom: 10px;
+      width: 2px;
+      background: var(--s3);
+    }
+    .timeline-step {
+      position: relative;
+      margin-bottom: 50px;
+      padding-left: 70px;
+    }
+    .timeline-step:last-child {
+      margin-bottom: 0;
+    }
+    .step-number {
+      position: absolute;
+      left: 20px;
+      top: 0;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 16px;
+      box-shadow: 0 4px 10px rgba(255,210,0,0.3);
+      border: 3px solid #fff;
+    }
+    .step-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .step-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header id="main-header" style="position: fixed; top: 0; width: 100%; z-index: 100; transition: var(--transition-smooth);">
+    <div class="logo-container">
+      <img src="logo.jpg" alt="Real Cars ETH" class="logo-img">
+      <span class="logo-text">REAL CARS ETH</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/#inventory">Inventory</a></li>
+      <li><a href="/#videos">Videos</a></li>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ul>
+    <div class="nav-search-container">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="nav-search-input" placeholder="Search vehicles...">
+    </div>
+    <button class="lang-toggle-btn" id="lang-toggle" style="margin-left: 15px; margin-right: 15px;">
+      <i class="fa-solid fa-globe"></i>
+      <span id="lang-label">EN</span>
+    </button>
+    <div class="nav-auth-container" id="nav-auth-container"></div>
+    <a href="https://t.me/jossycarmar" target="_blank" class="tg-btn" data-setting-href="telegram_channel">
+      <i class="fa-brands fa-telegram"></i> Contact Us
+    </a>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="subpage-container">
+    <div class="subpage-title-section">
+      <h1 data-i18n="services-title">Services & Tools</h1>
+      <p class="subpage-subtitle" data-i18n="services-subtitle">Get instant valuations for your current vehicle, order custom imports from global markets, or read our transaction process.</p>
+    </div>
+
+    <!-- TABS -->
+    <div class="services-tabs">
+      <button class="services-tab-btn active" data-tab="valuation" data-i18n="tab-valuation">Value Your Car</button>
+      <button class="services-tab-btn" data-tab="import" data-i18n="tab-import">Request Import</button>
+      <button class="services-tab-btn" data-tab="how-it-works" data-i18n="tab-how">How It Works</button>
+    </div>
+
+    <!-- VALUE YOUR CAR -->
+    <section class="services-section-card active" id="valuation">
+      <div class="services-form-layout">
+        <form class="form-inputs-col" id="val-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="val-brand" data-i18n="form-brand">Brand / Make</label>
+            <select id="val-brand" required>
+              <option value="toyota">Toyota</option>
+              <option value="lexus">Lexus</option>
+              <option value="mercedes">Mercedes-Benz</option>
+              <option value="bmw">BMW</option>
+              <option value="hyundai">Hyundai</option>
+              <option value="suzuki">Suzuki</option>
+              <option value="changan">Changan</option>
+              <option value="byd">BYD (Electric)</option>
+              <option value="other">Other Brand</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="val-model" data-i18n="form-model">Model Name</label>
+            <input type="text" id="val-model" placeholder="e.g. Land Cruiser 300, ID.4, Elantra" required>
+          </div>
+
+          <div class="form-group">
+            <label for="val-year" data-i18n="form-year">Production Year</label>
+            <select id="val-year" required></select>
+          </div>
+
+          <div class="form-group">
+            <label for="val-mileage" data-i18n="form-mileage">Mileage (Km)</label>
+            <input type="number" id="val-mileage" placeholder="e.g. 15000" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label for="val-condition" data-i18n="form-condition">Condition</label>
+            <select id="val-condition" required>
+              <option value="excellent">Excellent (Like Brand New)</option>
+              <option value="good">Good (Normal wear & tear)</option>
+              <option value="average">Average (Needs minor repairs)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="form-photos">Car Photos</label>
+            <div class="dropzone-container" id="dropzone">
+              <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+              <div class="dropzone-text" data-i18n="dropzone-text">Click or Drag & Drop Photos</div>
+              <div class="dropzone-sub">Upload up to 4 images (JPG, PNG)</div>
+              <input type="file" id="val-photos-input" multiple accept="image/*" style="display:none;">
+              <div class="dropzone-preview" id="dropzone-preview"></div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="val-name" data-i18n="form-name">Your Full Name</label>
+            <input type="text" id="val-name" placeholder="Enter your name" required>
+          </div>
+
+          <div class="form-group">
+            <label for="val-phone" data-i18n="form-phone">Contact Phone Number</label>
+            <input type="tel" id="val-phone" placeholder="e.g. +251911223344" required>
+          </div>
+        </form>
+
+        <div class="results-appraisal-col">
+          <div class="appraisal-val-card">
+            <span class="appraisal-val-lbl" data-i18n="instant-estimate-lbl">Instant Machine Estimate</span>
+            <div class="appraisal-val-price" id="calc-estimate-price">—</div>
+          </div>
+          <p class="appraisal-info-text" data-i18n="appraisal-info">This is an automated ballpark estimation based on local market factors in Addis Ababa. Submit this valuation request to have our specialist team inspect and provide a firm purchase or trade-in offer.</p>
+          <button type="button" class="action-btn-primary" id="btn-submit-val" data-i18n="btn-submit-valuation">Submit Request to Jossy</button>
+          <div class="form-status-msg" id="val-status-msg"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REQUEST IMPORT -->
+    <section class="services-section-card" id="import">
+      <div class="services-form-layout">
+        <form class="form-inputs-col" id="import-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="imp-model" data-i18n="form-imp-model">Desired Vehicle Model</label>
+            <input type="text" id="imp-model" placeholder="e.g. Toyota RAV4 EV 2024, Mercedes C200" required>
+          </div>
+
+          <div class="form-group">
+            <label for="imp-source" data-i18n="form-imp-source">Preferred Source Region</label>
+            <select id="imp-source" required>
+              <option value="europe">Europe (Germany, Belgium)</option>
+              <option value="dubai">Dubai (UAE)</option>
+              <option value="china">China</option>
+              <option value="china">Korea / Japan</option>
+              <option value="any">No Preference (Cheapest Source)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="imp-fuel" data-i18n="form-imp-fuel">Fuel Type Preference</label>
+            <select id="imp-fuel" required>
+              <option value="electric">Electric (EV - Highly recommended for low tax)</option>
+              <option value="hybrid">Hybrid</option>
+              <option value="petrol">Petrol</option>
+              <option value="diesel">Diesel</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="imp-budget" data-i18n="form-imp-budget">Estimated Budget Range (Birr)</label>
+            <input type="text" id="imp-budget" placeholder="e.g. 5,000,000 Birr" required>
+          </div>
+
+          <div class="form-group">
+            <label for="imp-specs" data-i18n="form-imp-specs">Custom Specifications / Options</label>
+            <textarea id="imp-specs" rows="4" placeholder="Mention color preference, sunroof, seating capacity, or engine requirements..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="imp-name" data-i18n="form-name">Your Full Name</label>
+            <input type="text" id="imp-name" placeholder="Enter your name" required>
+          </div>
+
+          <div class="form-group">
+            <label for="imp-phone" data-i18n="form-phone">Contact Phone Number</label>
+            <input type="tel" id="imp-phone" placeholder="e.g. +251911223344" required>
+          </div>
+        </form>
+
+        <div class="results-appraisal-col">
+          <div class="appraisal-val-card" style="padding: 15px;">
+            <i class="fa-solid fa-ship" style="font-size:36px; color: var(--accent); margin-bottom:10px;"></i>
+            <h3 style="font-weight:900;" data-i18n="import-service-title">Direct Import Ordering</h3>
+          </div>
+          <p class="appraisal-info-text" data-i18n="import-info">We source, inspect, purchase, ship, and custom-clear your vehicle from international hubs. Submit your request, and our sales agents will generate custom import options from reliable suppliers overseas.</p>
+          <button type="button" class="action-btn-primary" id="btn-submit-imp" data-i18n="btn-submit-import">Submit Import Request</button>
+          <div class="form-status-msg" id="imp-status-msg"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="services-section-card" id="how-it-works">
+      <div class="timeline-layout">
+        <div class="timeline-step">
+          <div class="step-number">1</div>
+          <h3 class="step-title" data-i18n="how-step1-title">Consultation & Selection</h3>
+          <p class="step-desc" data-i18n="how-step1-desc">Our sales agents walk you through available inventory or custom import catalog. We discuss specs, budget limits, tax statuses (EV vs Hybrid vs Gas), and logistics timeline.</p>
+        </div>
+
+        <div class="timeline-step">
+          <div class="step-number">2</div>
+          <h3 class="step-title" data-i18n="how-step2-title">Agreement & Deposit</h3>
+          <p class="step-desc" data-i18n="how-step2-desc">A formal purchase agreement is drawn. For local vehicles, we coordinate immediate bank/cash transfer. For custom imports, we verify the inspection report and secure a down payment deposit.</p>
+        </div>
+
+        <div class="timeline-step">
+          <div class="step-number">3</div>
+          <h3 class="step-title" data-i18n="how-step3-title">Shipping & Port Clearance</h3>
+          <p class="step-desc" data-i18n="how-step3-desc">We manage port transit from Dubai/China/Europe to Djibouti Port, clear handling charges, load onto carrier trucks, and coordinate customs clearance and inspection at Modjo dry port.</p>
+        </div>
+
+        <div class="timeline-step">
+          <div class="step-number">4</div>
+          <h3 class="step-title" data-i18n="how-step4-title">Final Inspection & Delivery</h3>
+          <p class="step-desc" data-i18n="how-step4-desc">The vehicle is cleaned, fully detailed, and gets safety checked. We register the vehicle, issue license plates, and hand over the keys at our premium showroom in Addis Ababa.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="ent-footer" id="contact">
+    <div class="footer-grid">
+      <div class="footer-col footer-col-brand">
+        <div class="footer-brand-logo">
+          <img src="logo.jpg" alt="RC">
+          <span>REAL CARS <strong>ETH</strong></span>
+        </div>
+        <p class="footer-brand-desc">&copy; 2026 Real Cars ETH. Premium Auto Dealership, Ethiopia. All rights reserved.</p>
+        <div style="font-size: 13px; color: #a4a295; margin: 12px 0; display: flex; flex-direction: column; gap: 6px;">
+          <span><i class="fa-solid fa-phone" style="color: #FFD200; margin-right: 8px;"></i><span data-setting-text="phone1">+251 946 740 763</span></span>
+          <span><i class="fa-solid fa-phone" style="color: #FFD200; margin-right: 8px;"></i><span data-setting-text="phone2">+251 976 558 181</span></span>
+          <span><i class="fa-brands fa-telegram" style="color: #FFD200; margin-right: 8px;"></i><a href="https://t.me/Jossimulugeta" target="_blank" data-setting-href="telegram_chat_username" data-setting-text="telegram_chat_username" style="color: inherit; text-decoration: none;">@Jossimulugeta</a></span>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Shop</h4>
+        <div class="footer-col-links">
+          <a href="/#inventory">All Inventory</a>
+          <a href="/#inventory">SUVs & Pickups</a>
+          <a href="/#inventory">Electric Vehicles</a>
+          <a href="/#inventory">Luxury Sedans</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Sell/Trade</h4>
+        <div class="footer-col-links">
+          <a href="/services?section=valuation">Value Your Car</a>
+          <a href="/services?section=import">Request Import</a>
+          <a href="/services?section=how-it-works">How It Works</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Finance</h4>
+        <div class="footer-col-links">
+          <a href="/finance?section=loan-calculator">Loan Calculator</a>
+          <a href="/finance?section=clearing-fees">Clearing Fees</a>
+          <a href="/finance?section=duty-info">Ethiopia Duty Info</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <div class="footer-col-links">
+          <a href="/#about">About Us</a>
+          <a href="/#contact">Contact Us</a>
+          <a href="/login"><i class="fa-solid fa-lock" style="font-size: 9px; margin-right: 4px;"></i>Admin Panel</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="auth.js"></script>
+  <script>
+    // Header styling on scroll
+    document.addEventListener('DOMContentLoaded', () => {
+      const header = document.getElementById('main-header');
+      window.addEventListener('scroll', () => {
+        header.classList.toggle('scrolled', window.scrollY > 40);
+      });
+
+      // Populate year selector (from current year 2026 back to 2010)
+      const yearSelect = document.getElementById('val-year');
+      if (yearSelect) {
+        const currentYear = 2026;
+        for (let y = currentYear; y >= 2010; y--) {
+          const opt = document.createElement('option');
+          opt.value = y;
+          opt.textContent = y;
+          yearSelect.appendChild(opt);
+        }
+      }
+
+      // Tabs logic
+      const tabBtns = document.querySelectorAll('.services-tab-btn');
+      const sections = document.querySelectorAll('.services-section-card');
+
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tabId = btn.getAttribute('data-tab');
+          tabBtns.forEach(b => b.classList.toggle('active', b === btn));
+          sections.forEach(s => s.classList.toggle('active', s.id === tabId));
+          
+          // Update URL query parameter
+          const url = new URL(window.location);
+          url.searchParams.set('section', tabId);
+          window.history.pushState({}, '', url);
+        });
+      });
+
+      // Parse query parameter section on load
+      const params = new URLSearchParams(window.location.search);
+      const sectionParam = params.get('section');
+      if (sectionParam) {
+        const matchingBtn = document.querySelector(`.services-tab-btn[data-tab="${sectionParam}"]`);
+        if (matchingBtn) {
+          matchingBtn.click();
+        }
+      }
+
+      // VALUATION ESTIMATION SCRIPT
+      const valForm = document.getElementById('val-form');
+      const valBrand = document.getElementById('val-brand');
+      const valModel = document.getElementById('val-model');
+      const valYear = document.getElementById('val-year');
+      const valMileage = document.getElementById('val-mileage');
+      const valCondition = document.getElementById('val-condition');
+      const calcEstimatePrice = document.getElementById('calc-estimate-price');
+
+      function calculateMachineValue() {
+        const brand = valBrand.value;
+        const year = parseInt(valYear.value || 2026);
+        const mileage = parseFloat(valMileage.value || 0);
+        const condition = valCondition.value;
+
+        // Base price
+        let price = 4800000;
+
+        // Year deprecation (5% per year from 2026)
+        const yearsDiff = 2026 - year;
+        price = price * Math.pow(0.95, yearsDiff);
+
+        // Mileage deprecation (2% per 10,000 km)
+        const mileageChunks = mileage / 10000;
+        price = price * Math.pow(0.98, mileageChunks);
+
+        // Brand factors
+        const brandMultipliers = {
+          toyota: 1.15,
+          lexus: 1.25,
+          mercedes: 1.20,
+          bmw: 1.10,
+          hyundai: 0.90,
+          suzuki: 0.85,
+          changan: 0.80,
+          byd: 1.05,
+          other: 0.90
+        };
+        const brandMult = brandMultipliers[brand] || 0.90;
+        price = price * brandMult;
+
+        // Condition multiplier
+        const condMultipliers = {
+          excellent: 1.0,
+          good: 0.90,
+          average: 0.75
+        };
+        const condMult = condMultipliers[condition] || 0.90;
+        price = price * condMult;
+
+        // Round to nearest 50k and display
+        price = Math.max(300000, Math.round(price / 50000) * 50000);
+        calcEstimatePrice.textContent = price.toLocaleString() + ' Birr';
+        return price;
+      }
+
+      [valBrand, valYear, valMileage, valCondition].forEach(element => {
+        element.addEventListener('change', calculateMachineValue);
+        element.addEventListener('input', calculateMachineValue);
+      });
+      calculateMachineValue();
+
+      // Dropzone and file uploads configuration
+      const dropzone = document.getElementById('dropzone');
+      const fileInput = document.getElementById('val-photos-input');
+      const dropzonePreview = document.getElementById('dropzone-preview');
+      let uploadedBase64Images = [];
+
+      dropzone.addEventListener('click', () => fileInput.click());
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = 'var(--accent)';
+      });
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.style.borderColor = 'var(--s3)';
+      });
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = 'var(--s3)';
+        handleFiles(e.dataTransfer.files);
+      });
+
+      fileInput.addEventListener('change', () => {
+        handleFiles(fileInput.files);
+      });
+
+      function handleFiles(files) {
+        const maxImages = 4;
+        const filesArr = Array.from(files).slice(0, maxImages - uploadedBase64Images.length);
+
+        filesArr.forEach(file => {
+          if (!file.type.startsWith('image/')) return;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const base64Data = e.target.result;
+            uploadedBase64Images.push({
+              fileName: file.name,
+              base64Data: base64Data
+            });
+
+            // Add visual preview
+            const img = document.createElement('img');
+            img.src = base64Data;
+            img.className = 'preview-thumbnail';
+            dropzonePreview.appendChild(img);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // SUBMIT VALUATION TO BACKEND
+      const btnSubmitVal = document.getElementById('btn-submit-val');
+      const valStatusMsg = document.getElementById('val-status-msg');
+
+      btnSubmitVal.addEventListener('click', async () => {
+        if (!valForm.checkValidity()) {
+          valForm.reportValidity();
+          return;
+        }
+
+        btnSubmitVal.disabled = true;
+        btnSubmitVal.textContent = 'Submitting...';
+        valStatusMsg.className = 'form-status-msg';
+        valStatusMsg.textContent = '';
+
+        const name = document.getElementById('val-name').value;
+        const phone = document.getElementById('val-phone').value;
+        const brand = valBrand.value;
+        const model = valModel.value;
+        const year = valYear.value;
+        const mileage = valMileage.value;
+        const condition = valCondition.value;
+        const estValue = calcEstimatePrice.textContent;
+
+        const messageText = `VALUATION REQUEST:
+Brand/Make: ${brand.toUpperCase()}
+Model: ${model}
+Production Year: ${year}
+Mileage: ${mileage} Km
+Condition: ${condition.toUpperCase()}
+Calculated Machine Estimate: ${estValue}`;
+
+        try {
+          const res = await fetch('/api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: name,
+              contact: phone,
+              message: messageText,
+              images: uploadedBase64Images
+            })
+          });
+
+          const data = await res.json();
+          if (res.ok) {
+            valStatusMsg.className = 'form-status-msg success';
+            valStatusMsg.textContent = 'Valuation request submitted successfully! Jossy\'s team will contact you shortly.';
+            valForm.reset();
+            dropzonePreview.innerHTML = '';
+            uploadedBase64Images = [];
+            calculateMachineValue();
+          } else {
+            throw new Error(data.error || 'Server error');
+          }
+        } catch (err) {
+          valStatusMsg.className = 'form-status-msg error';
+          valStatusMsg.textContent = 'Failed to submit request: ' + err.message;
+        } finally {
+          btnSubmitVal.disabled = false;
+          btnSubmitVal.textContent = 'Submit Request to Jossy';
+        }
+      });
+
+      // SUBMIT IMPORT TO BACKEND
+      const btnSubmitImp = document.getElementById('btn-submit-imp');
+      const impStatusMsg = document.getElementById('imp-status-msg');
+      const importForm = document.getElementById('import-form');
+
+      btnSubmitImp.addEventListener('click', async () => {
+        if (!importForm.checkValidity()) {
+          importForm.reportValidity();
+          return;
+        }
+
+        btnSubmitImp.disabled = true;
+        btnSubmitImp.textContent = 'Submitting...';
+        impStatusMsg.className = 'form-status-msg';
+        impStatusMsg.textContent = '';
+
+        const name = document.getElementById('imp-name').value;
+        const phone = document.getElementById('imp-phone').value;
+        const model = document.getElementById('imp-model').value;
+        const source = document.getElementById('imp-source').value;
+        const fuel = document.getElementById('imp-fuel').value;
+        const budget = document.getElementById('imp-budget').value;
+        const specs = document.getElementById('imp-specs').value;
+
+        const messageText = `IMPORT REQUEST:
+Desired Model: ${model}
+Source Preference: ${source.toUpperCase()}
+Fuel Preference: ${fuel.toUpperCase()}
+Estimated Budget: ${budget}
+Specs/Options requested: ${specs}`;
+
+        try {
+          const res = await fetch('/api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: name,
+              contact: phone,
+              message: messageText
+            })
+          });
+
+          const data = await res.json();
+          if (res.ok) {
+            impStatusMsg.className = 'form-status-msg success';
+            impStatusMsg.textContent = 'Import request submitted successfully! Jossy\'s agents will contact you.';
+            importForm.reset();
+          } else {
+            throw new Error(data.error || 'Server error');
+          }
+        } catch (err) {
+          impStatusMsg.className = 'form-status-msg error';
+          impStatusMsg.textContent = 'Failed to submit request: ' + err.message;
+        } finally {
+          btnSubmitImp.disabled = false;
+          btnSubmitImp.textContent = 'Submit Import Request';
+        }
+      });
+      
+      // Global navigation search input handler
+      const navSearchInput = document.getElementById('nav-search-input');
+      if (navSearchInput) {
+        navSearchInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            window.location.href = '/?q=' + encodeURIComponent(navSearchInput.value);
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
