@@ -72,7 +72,11 @@ const TRANSLATIONS = {
     "detail-name-placeholder": "ሙሉ ስምዎን ያስገቡ",
     "detail-phone-placeholder": "የስልክ ቁጥርዎን ያስገቡ",
     "detail-btn-submit": "ጥያቄ ይላኩ",
-    "detail-btn-call": "አሁኑኑ ይደውሉ"
+    "detail-btn-call": "አሁኑኑ ይደውሉ",
+    "logout-confirm-title": "የመውጫ ማረጋገጫ",
+    "logout-confirm-text": "እርግጠኛ ነዎት መውጣት ይፈልጋሉ? ፕሪሚየም ዝርዝሮችን፣ የመኪና መረጃዎችን እና የሻጭ ዕውቂያዎችን ለማየት እንደገና መግባት ይኖርብዎታል።",
+    "logout-confirm-cancel": "አልፈልግም",
+    "logout-confirm-ok": "ውጣ"
   },
   en: {
     // Navigation
@@ -147,9 +151,12 @@ const TRANSLATIONS = {
     "detail-name-placeholder": "Enter your full name",
     "detail-phone-placeholder": "Enter your phone number",
     "detail-btn-submit": "Send Request",
-    "detail-btn-call": "Call Now"
-  }
-};
+    "detail-btn-call": "Call Now",
+    "logout-confirm-title": "Confirm Logout",
+    "logout-confirm-text": "Are you sure you want to log out? You will need to log in again to unlock premium details, vehicle specifications, and seller contacts.",
+    "logout-confirm-cancel": "Cancel",
+    "logout-confirm-ok": "Log Out"
+  };
 
 let currentLang = localStorage.getItem("rceth_lang") || "am";
 

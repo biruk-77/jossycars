@@ -34,6 +34,69 @@ function saveUserData(data) {
   updateNavbarAuth();
 }
 
+// Function to show a custom logout confirmation modal
+function showLogoutConfirmation(onConfirm) {
+  // Check if modal already exists
+  let modal = document.getElementById('custom-logout-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'custom-logout-modal';
+    modal.className = 'auth-modal'; // Reuse the existing auth-modal class for backdrop/blur
+    document.body.appendChild(modal);
+  }
+
+  // Get current translation values
+  const lang = window.currentLang || localStorage.getItem("rceth_lang") || "am";
+  const translations = window.TRANSLATIONS?.[lang] || {};
+  const titleText = translations["logout-confirm-title"] || "Confirm Logout";
+  const bodyText = translations["logout-confirm-text"] || "Are you sure you want to log out?";
+  const cancelText = translations["logout-confirm-cancel"] || "Cancel";
+  const okText = translations["logout-confirm-ok"] || "Log Out";
+
+  // Set inner HTML dynamically to update language if switched
+  modal.innerHTML = `
+    <div class="auth-modal-content" style="max-width: 400px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 36px 30px;">
+      <button class="auth-modal-close" id="custom-logout-close">&times;</button>
+      <div style="margin-top: 10px;">
+        <i class="fa-solid fa-right-from-bracket" style="font-size: 36px; color: #b22222; background: rgba(178, 34, 34, 0.06); padding: 18px; border-radius: 50%; width: 72px; height: 72px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;"></i>
+      </div>
+      <h3 style="font-size: 20px; font-weight: 800; margin: 0; color: var(--text);">${titleText}</h3>
+      <p style="font-size: 13px; color: var(--text-dim); line-height: 1.5; margin: 0 0 8px 0;">${bodyText}</p>
+      <div style="display: flex; gap: 12px; width: 100%; justify-content: center; margin-top: 8px;">
+        <button id="custom-logout-cancel" class="nav-login-btn" style="flex: 1; padding: 12px; margin: 0; font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">${cancelText}</button>
+        <button id="custom-logout-confirm" class="auth-modal-submit" style="flex: 1; padding: 12px; margin: 0; font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; background: #b22222; color: #fff; box-shadow: 0 8px 20px rgba(178,34,34,0.15);">${okText}</button>
+      </div>
+    </div>
+  `;
+
+  // Event listeners
+  const closeModalFunc = () => {
+    modal.classList.remove('open');
+  };
+
+  modal.querySelector('#custom-logout-close').addEventListener('click', closeModalFunc);
+  modal.querySelector('#custom-logout-cancel').addEventListener('click', closeModalFunc);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModalFunc();
+  });
+
+  // Setup confirm action
+  const confirmBtn = modal.querySelector('#custom-logout-confirm');
+  // Recreate the button to clear previous listeners
+  const newConfirmBtn = confirmBtn.cloneNode(true);
+  confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+  newConfirmBtn.addEventListener('click', () => {
+    modal.classList.remove('open');
+    onConfirm();
+  });
+
+  // Open modal
+  setTimeout(() => {
+    modal.classList.add('open');
+  }, 10);
+}
+
 // Log out user
 function logoutUser() {
   // Clear cookie
@@ -70,8 +133,11 @@ function updateNavbarAuth() {
     `;
     document.getElementById('nav-logout-action')?.addEventListener('click', (e) => {
       e.preventDefault();
-      logoutUser();
+      showLogoutConfirmation(() => {
+        logoutUser();
+      });
     });
+
     document.getElementById('nav-profile-action')?.addEventListener('click', (e) => {
       e.preventDefault();
       openProfileModal();

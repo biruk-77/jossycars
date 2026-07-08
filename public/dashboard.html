@@ -1091,6 +1091,24 @@
     </div>
   </div>
 
+  <!-- Logout Confirmation Modal -->
+  <div class="modal" id="logout-confirm-modal">
+    <div class="modal-content" style="max-width: 400px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 36px 30px;">
+      <div style="margin-top: 10px;">
+        <i class="fa-solid fa-right-from-bracket" style="font-size: 36px; color: #b22222; background: rgba(178, 34, 34, 0.06); padding: 18px; border-radius: 50%; width: 72px; height: 72px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;"></i>
+      </div>
+      <h2 style="font-size: 20px; font-weight: 900; margin: 0; color: var(--text);">Confirm Logout</h2>
+      <p style="font-size: 13.5px; color: var(--text-dim); margin: 0; line-height: 1.5;">
+        Are you sure you want to log out of the admin dashboard? You will need to log in again to manage the inventory and global settings.
+      </p>
+      <div style="display: flex; gap: 12px; width: 100%; justify-content: center; margin-top: 10px;">
+        <button class="btn btn-secondary" id="logout-confirm-cancel" style="flex: 1; padding: 12px; margin: 0; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">Cancel</button>
+        <button class="btn btn-primary" id="logout-confirm-proceed" style="flex: 1; padding: 12px; margin: 0; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; background: #b22222; border: 1px solid #b22222; color: #fff; box-shadow: 0 4px 15px rgba(178,34,34,0.2);">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+
   <!-- Toast Notification -->
   <div class="toast" id="toast">Listing saved successfully.</div>
 
@@ -1480,12 +1498,31 @@
     }
 
     // Log out
+    const logoutConfirmModal = document.getElementById('logout-confirm-modal');
+    const logoutConfirmCancel = document.getElementById('logout-confirm-cancel');
+    const logoutConfirmProceed = document.getElementById('logout-confirm-proceed');
+
     logoutBtn.addEventListener('click', () => {
+      logoutConfirmModal.classList.add('open');
+    });
+
+    logoutConfirmCancel.addEventListener('click', () => {
+      logoutConfirmModal.classList.remove('open');
+    });
+
+    logoutConfirmModal.addEventListener('click', (e) => {
+      if (e.target === logoutConfirmModal) {
+        logoutConfirmModal.classList.remove('open');
+      }
+    });
+
+    logoutConfirmProceed.addEventListener('click', () => {
       document.cookie = "rceth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
       localStorage.removeItem('rceth_token');
       localStorage.removeItem('rceth_username');
       window.location.href = 'login.html';
     });
+
 
     // Fetch lists
     async function loadListings() {
