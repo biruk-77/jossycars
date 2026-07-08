@@ -406,15 +406,8 @@ function timeAgo(dateStr) {
 /* ── Detail page ──────────────────────────────────────── */
 function openDetailPage(car) {
   sessionStorage.setItem('rceth_car', JSON.stringify(car));
-  if (isLoggedIn()) {
-    recordInquiry(car);
-    window.location.href = 'car.html';
-  } else {
-    openAuthModal(() => {
-      recordInquiry(car);
-      window.location.href = 'car.html';
-    });
-  }
+  recordInquiry(car);
+  window.location.href = 'car.html';
 }
 
 /* ── Filter + Pagination ──────────────────────────────── */
@@ -1220,4 +1213,120 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => notifyContainer.remove(), 500);
     }, 4000);
   }
+
+  /* ── Mobile Drawer ───────────────────────────────────── */
+  const mobileToggle  = document.getElementById('mobile-menu-toggle');
+  const mobileDrawer  = document.getElementById('mobile-nav-drawer');
+  const mobileOverlay = document.getElementById('mobile-drawer-overlay');
+  const mobileClose   = document.getElementById('mobile-drawer-close');
+
+  function openMobileDrawer() {
+    mobileDrawer?.classList.add('open');
+    mobileOverlay?.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    // Sync auth container into drawer
+    const mainAuth   = document.getElementById('nav-auth-container');
+    const mobileAuth = document.getElementById('mobile-nav-auth-container');
+    if (mainAuth && mobileAuth) mobileAuth.innerHTML = mainAuth.innerHTML;
+  }
+
+  function closeMobileDrawer() {
+    mobileDrawer?.classList.remove('open');
+    mobileOverlay?.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  mobileToggle?.addEventListener('click', openMobileDrawer);
+  mobileClose?.addEventListener('click', closeMobileDrawer);
+  mobileOverlay?.addEventListener('click', closeMobileDrawer);
+
+  // Close drawer when a nav link is tapped
+  document.querySelectorAll('.mobile-drawer-links a').forEach(link => {
+    link.addEventListener('click', closeMobileDrawer);
+  });
+
+  // Mobile lang toggle — mirror the main one
+  document.getElementById('mobile-lang-toggle')?.addEventListener('click', () => {
+    if (typeof toggleLanguage === 'function') toggleLanguage();
+    // Sync label
+    const label = document.getElementById('lang-label');
+    const mobileLabel = document.getElementById('mobile-lang-label');
+    if (label && mobileLabel) mobileLabel.textContent = label.textContent;
+  });
+
+  // Mobile search — live dropdown powered by currentCars
+  const mobileSearchInput  = document.getElementById('mobile-search-input');
+  const mobileSearchClear  = document.getElementById('mobile-search-clear');
+  const mobileSearchDrop   = document.getElementById('mobile-search-dropdown');
+
+  function renderMobileDropdown(query) {
+    if (!mobileSearchDrop) return;
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      mobileSearchDrop.classList.remove('show');
+      if (mobileSearchClear) mobileSearchClear.style.display = 'none';
+      return;
+    }
+    if (mobileSearchClear) mobileSearchClear.style.display = 'flex';
+
+    const matches = (currentCars || []).filter(car => {
+      return (car.title || '').toLowerCase().includes(q) ||
+             (car.details || '').toLowerCase().includes(q);
+    }).slice(0, 6);
+
+    if (matches.length === 0) {
+      mobileSearchDrop.innerHTML = `
+        <div class="search-no-results">
+          <i class="fa-solid fa-car-tunnel"></i>
+          No matching vehicles found
+        </div>`;
+    } else {
+      mobileSearchDrop.innerHTML = matches.map(car => {
+        const photo = (car.photos && car.photos.length) ? car.photos[0] : 'logo.jpg';
+        return `
+          <div class="search-item" data-id="${car._id}" style="cursor:pointer;">
+            <img class="search-item-img" src="${photo}" alt="${car.title}" onerror="this.src='logo.jpg'">
+            <div class="search-item-info">
+              <span class="search-item-title">${car.title}</span>
+              <span class="search-item-price">${car.price || 'Contact for Price'}</span>
+            </div>
+          </div>`;
+      }).join('');
+
+      mobileSearchDrop.querySelectorAll('.search-item').forEach((item, idx) => {
+        item.addEventListener('click', () => {
+          closeMobileDrawer();
+          openDetailPage(matches[idx]);
+        });
+      });
+    }
+    mobileSearchDrop.classList.add('show');
+  }
+
+  mobileSearchInput?.addEventListener('input', () => {
+    // Also sync to filter search so results update in background
+    const filterSearch = document.getElementById('search-input');
+    if (filterSearch) {
+      filterSearch.value = mobileSearchInput.value;
+      applyFilters();
+    }
+    renderMobileDropdown(mobileSearchInput.value);
+  });
+
+  mobileSearchClear?.addEventListener('click', () => {
+    if (mobileSearchInput) mobileSearchInput.value = '';
+    if (mobileSearchClear) mobileSearchClear.style.display = 'none';
+    if (mobileSearchDrop) mobileSearchDrop.classList.remove('show');
+    const filterSearch = document.getElementById('search-input');
+    if (filterSearch) { filterSearch.value = ''; applyFilters(); }
+  });
+
+  mobileSearchInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      closeMobileDrawer();
+      document.getElementById('inventory')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+
 });
+

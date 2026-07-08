@@ -674,20 +674,9 @@
       }
       const car = JSON.parse(raw);
 
-      if (!isLoggedIn()) {
-        // Show auth modal, disable page interaction, and run inquiry on success
-        openAuthModal(() => {
-          recordInquiry(car);
-          window.location.reload();
-        });
-        
-        // Hide the close button in the modal so they MUST login/signup to see the car details
-        const closeBtn = document.getElementById('customer-auth-close');
-        if (closeBtn) closeBtn.style.display = 'none';
-      } else {
-        // Record inquiry as they've viewed the car details
-        recordInquiry(car);
-      }
+      // Record inquiry (if logged in, this will post to DB)
+      recordInquiry(car);
+
 
       // Navbar Search Redirection to Homepage
       const navSearch = document.getElementById('nav-search-input');

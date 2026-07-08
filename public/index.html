@@ -14,6 +14,10 @@
 
   <!-- NAV -->
   <nav id="nav">
+    <div class="logo-container">
+      <img src="logo.jpg" alt="Real Cars ETH" class="logo-img">
+      <span class="logo-text">REAL CARS <strong>ETH</strong></span>
+    </div>
     <ul class="nav-links">
       <li><a href="#home" data-i18n="nav-home">Home</a></li>
       <li><a href="#inventory" data-i18n="nav-inventory">Inventory</a></li>
@@ -38,7 +42,51 @@
     </button>
     <div class="nav-auth-container" id="nav-auth-container"></div>
     <a href="https://t.me/jossycarmar" target="_blank" class="nav-cta" id="header-tg-link" data-setting-href="telegram_channel" data-i18n="nav-cta">Contact Us</a>
+
+    <!-- Mobile hamburger button -->
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Open menu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
   </nav>
+
+  <!-- Mobile drawer overlay -->
+  <div class="mobile-drawer-overlay" id="mobile-drawer-overlay"></div>
+
+  <!-- Mobile slide-in drawer -->
+  <div class="mobile-nav-drawer" id="mobile-nav-drawer">
+    <button class="mobile-drawer-close" id="mobile-drawer-close" aria-label="Close menu">&times;</button>
+
+    <!-- Search bar inside drawer -->
+    <div class="mobile-drawer-search">
+      <div class="nav-search-container" id="mobile-search-container">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="mobile-search-input" placeholder="Search vehicles..." autocomplete="off">
+        <button class="nav-search-clear" id="mobile-search-clear" style="display:none;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="nav-search-dropdown" id="mobile-search-dropdown"></div>
+    </div>
+
+    <!-- Nav links -->
+    <nav class="mobile-drawer-links">
+      <a href="#home" data-i18n="nav-home">Home</a>
+      <a href="#inventory" data-i18n="nav-inventory">Inventory</a>
+      <a href="#videos" data-i18n="nav-videos">Videos</a>
+      <a href="#about" data-i18n="nav-about">About</a>
+      <a href="#contact" data-i18n="nav-contact">Contact</a>
+    </nav>
+
+    <!-- Bottom actions: lang + auth + CTA -->
+    <div class="mobile-drawer-actions">
+      <button class="lang-toggle-btn" id="mobile-lang-toggle">
+        <i class="fa-solid fa-globe"></i>
+        <span id="mobile-lang-label">EN</span>
+      </button>
+      <div id="mobile-nav-auth-container"></div>
+      <a href="https://t.me/jossycarmar" target="_blank" class="nav-cta" data-setting-href="telegram_channel" data-i18n="nav-cta">Contact Us</a>
+    </div>
+  </div>
 
   <!-- ══ HERO — 75vh, full width, 3D fills everything ══ -->
   <section id="home" class="hero">
